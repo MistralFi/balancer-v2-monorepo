@@ -216,7 +216,10 @@ contract StablePhantomPool is IRateProvider, BaseGeneralPool, ProtocolFeeCache {
                 _updateTokenRateCache(params.tokens[i], params.rateProviders[i], params.tokenRateCacheDurations[i]);
                 emit TokenRateProviderSet(params.tokens[i], params.rateProviders[i], params.tokenRateCacheDurations[i]);
 
-                _updateOldRate(params.tokens[i]);
+                if (params.exemptFromYieldProtocolFeeFlags[i]) {
+                    // Initialize the old rate as well, in case _scalingFactors() gets called before the first join.
+                    _updateOldRate(params.tokens[i]);
+                }
             }
         }
 
@@ -689,6 +692,10 @@ contract StablePhantomPool is IRateProvider, BaseGeneralPool, ProtocolFeeCache {
         _mintPoolTokens(sender, initialBpt);
         amountsInIncludingBpt[_bptIndex] = initialBpt;
 
+        // They were already set in the constructor, but there might be a long delay between construction and
+        // initialization, so call it again here.
+        _updateOldRatesAfterJoinExit();
+
         return (bptAmountOut, amountsInIncludingBpt);
     }
 
@@ -1058,8 +1065,7 @@ contract StablePhantomPool is IRateProvider, BaseGeneralPool, ProtocolFeeCache {
     /**
      * @dev Returns whether the token is exempt from protocol fees on the yield.
      * If the BPT token is passed in (which doesn't make much sense, but shouldn't fail,
-     * since it is a valid pool token), the corresponding flag will be false, per the
-     * constructor logic.
+     * since it is a valid pool token), the corresponding flag will be false.
      */
     function isTokenExemptFromYieldProtocolFee(IERC20 token) external view returns (bool) {
         // prettier-ignore
