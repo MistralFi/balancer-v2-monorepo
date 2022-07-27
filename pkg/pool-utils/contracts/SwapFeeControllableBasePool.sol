@@ -18,11 +18,9 @@ import "@balancer-labs/v2-interfaces/contracts/vault/ISwapFeeControllablePool.so
 import "@balancer-labs/v2-interfaces/contracts/vault/ISwapFeeController.sol";
 import "./BasePool.sol";
 
-import "hardhat/console.sol";
-
 abstract contract SwapFeeControllableBasePool is ISwapFeeControllablePool, BasePool {
     uint256 private constant _DEFAULT_SWAP_FEE_PERCENTAGE = 1e16; // 1% - this fits in 64 bits
-    uint256 private _current_swap_fee_percentage;
+    uint256 private _currentSwapFeePercentage;
 
     ISwapFeeController public swapFeeController;
 
@@ -38,36 +36,38 @@ abstract contract SwapFeeControllableBasePool is ISwapFeeControllablePool, BaseP
         uint256 bufferPeriodDuration,
         address owner,
         ISwapFeeController _swapFeeController
-    ) BasePool(
-        vault,
-        specialization,
-        name,
-        symbol,
-        tokens,
-        assetManagers,
-        swapFeePercentage,
-        pauseWindowDuration,
-        bufferPeriodDuration,
-        owner
-    ){
-        // requier
+    )
+        BasePool(
+            vault,
+            specialization,
+            name,
+            symbol,
+            tokens,
+            assetManagers,
+            swapFeePercentage,
+            pauseWindowDuration,
+            bufferPeriodDuration,
+            owner
+        )
+    {
+        require(_swapFeeController != address(0), "SwapFeeController can't be empty");
         swapFeeController = _swapFeeController;
     }
 
-    function getSwapFeeController() external view override returns (address){
+    function getSwapFeeController() external view override returns (address) {
         return address(swapFeeController);
     }
 
     function _getMinSwapFeePercentage() internal view virtual override returns (uint256) {
-        if (_current_swap_fee_percentage != 0) {
-            return _current_swap_fee_percentage;
+        if (_currentSwapFeePercentage != 0) {
+            return _currentSwapFeePercentage;
         }
         return _DEFAULT_SWAP_FEE_PERCENTAGE;
     }
 
     function _getMaxSwapFeePercentage() internal view virtual override returns (uint256) {
-        if (_current_swap_fee_percentage != 0) {
-            return _current_swap_fee_percentage;
+        if (_currentSwapFeePercentage != 0) {
+            return _currentSwapFeePercentage;
         }
         return _DEFAULT_SWAP_FEE_PERCENTAGE;
     }
@@ -79,9 +79,11 @@ abstract contract SwapFeeControllableBasePool is ISwapFeeControllablePool, BaseP
      Emits the SwapFeePercentageChanged event.
      */
     function setSwapFeePercentage(uint256 swapFeePercentage) public virtual override authenticate whenNotPaused {
-        _require(swapFeeController.isAllowedSwapFeePercentage(
-            getPoolId(), swapFeePercentage), Errors.SWAP_FEE_DISALLOWED_BY_FEE_CONTROLLER);
-        _current_swap_fee_percentage = swapFeePercentage;
+        _require(
+            swapFeeController.isAllowedSwapFeePercentage(getPoolId(), swapFeePercentage),
+            Errors.SWAP_FEE_DISALLOWED_BY_FEE_CONTROLLER
+        );
+        _currentSwapFeePercentage = swapFeePercentage;
         _setSwapFeePercentage(swapFeePercentage);
     }
 }
