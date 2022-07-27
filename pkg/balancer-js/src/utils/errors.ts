@@ -26,6 +26,7 @@ const balancerErrorCodes: Record<string, string> = {
   '209': 'EXPIRED_PERMIT',
   '210': 'NOT_TWO_TOKENS',
   '211': 'DISABLED',
+  '212': 'SWAP_FEE_DISALLOWED_BY_FEE_CONTROLLER',
   '300': 'MIN_AMP',
   '301': 'MAX_AMP',
   '302': 'MIN_WEIGHT',
