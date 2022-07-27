@@ -23,55 +23,88 @@ import "@balancer-labs/v2-solidity-utils/contracts/helpers/Authentication.sol";
  * @dev SwapFeeController is a separate contract which encapsulates protocol strategy regarding swap fees.
  */
 contract SwapFeeController is ISwapFeeController, Authentication {
-    //todo events
 
     // 1e18 corresponds to 1.0, or a 100% fee
-    uint256 private constant _MIN_SWAP_FEE_PERCENTAGE_STABLE_POOL = 1e12; // 0.0001%
-    uint256 private constant _MAX_SWAP_FEE_PERCENTAGE_STABLE_POOL = 1e17; // 10% - this fits in 64 bits
+    uint256 private constant _MIN_SWAP_FEE_PERCENTAGE = 1e14; // 0.01%
+    uint256 private constant _MAX_SWAP_FEE_PERCENTAGE = 1e16; // 1% - this fits in 64 bits
 
     IVault public immutable override vault;
 
     uint256 public maxSwapFeePercentage;
-    uint256 public minSwapFeePercentageStablePool;
+    uint256 public minSwapFeePercentageStableBCPool;
+    uint256 public minSwapFeePercentageStableExoticPool;
     uint256 public minSwapFeePercentageRegularPool;
-    uint256 public minSwapFeePercentageVolatilePool;
 
     mapping(bytes32 => bool) private _stableBlueChipsPools;
-    mapping(bytes32 => bool) private _stablePools;
+    mapping(bytes32 => bool) private _stableExoticPools;
     mapping(bytes32 => bool) private _regularPools;
 
     constructor(
         IVault _vault,
         uint256 _maxSwapFeePercentage,
-        uint256 _minSwapFeePercentageStablePool,
-        uint256 _minSwapFeePercentageRegularPool,
-        uint256 _minSwapFeePercentageVolatilePool
+        uint256 _minSwapFeePercentageStableBCPool,
+        uint256 _minSwapFeePercentageStableExoticPool,
+        uint256 _minSwapFeePercentageRegularPool
     )Authentication(bytes32(uint256(address(this)))){
+        require(address(_vault) !=address(0), "Vault can't be empty");
+        _checkFeeBoundaries(_maxSwapFeePercentage);
+        _checkFeeBoundaries(_minSwapFeePercentageStableBCPool);
+        _checkFeeBoundaries(_minSwapFeePercentageStableExoticPool);
+        _checkFeeBoundaries(_minSwapFeePercentageRegularPool);
+
         vault = _vault;
         maxSwapFeePercentage = _maxSwapFeePercentage;
-        minSwapFeePercentageStablePool = _minSwapFeePercentageStablePool;
+        minSwapFeePercentageStableBCPool = _minSwapFeePercentageStableBCPool;
+        minSwapFeePercentageStableExoticPool = _minSwapFeePercentageStableExoticPool;
         minSwapFeePercentageRegularPool = _minSwapFeePercentageRegularPool;
-        minSwapFeePercentageVolatilePool = _minSwapFeePercentageVolatilePool;
+
+        emit MaxSwapFeePercentageUpdated(maxSwapFeePercentage);
+        emit MinSwapFeePercentageStableBCPoolUpdated(minSwapFeePercentageStableBCPool);
+        emit MinSwapFeePercentageStableExoticPoolUpdated(minSwapFeePercentageStableExoticPool);
+        emit MinSwapFeePercentageRegularPoolUpdated(minSwapFeePercentageRegularPool);
+
+    }
+
+    function _checkFeeBoundaries(uint256 fee) private pure{
+        require(fee <= _MAX_SWAP_FEE_PERCENTAGE, "Fee should be within boundaries (big)");
+        require(fee >= _MIN_SWAP_FEE_PERCENTAGE, "Fee should be within boundaries (small)");
     }
 
     function setRegularPoolAllowance(bytes32 poolId, bool isAllow) external authenticate {
         _regularPools[poolId] = isAllow;
+        emit RegularPoolUpdated(poolId, isAllow);
     }
 
-    function setStablePoolAllowance(bytes32 poolId, bool isAllow) external authenticate {
-        _stablePools[poolId] = isAllow;
+    function setStableExoticPoolAllowance(bytes32 poolId, bool isAllow) external authenticate {
+        _stableExoticPools[poolId] = isAllow;
+        emit StableExoticPoolUpdated(poolId, isAllow);
     }
 
     function setStableBlueChipsPoolAllowance(bytes32 poolId, bool isAllow) external authenticate {
         _stableBlueChipsPools[poolId] = isAllow;
+        emit StableBlueChipsPoolUpdated(poolId, isAllow);
+    }
+
+    function isRegularPoolAllowed(bytes32 poolId) external view returns(bool){
+        return _regularPools[poolId];
+    }
+
+    function isStableBlueChipsPoolAllowed(bytes32 poolId) external view returns(bool){
+        return _stableBlueChipsPools[poolId];
+    }
+
+    function isStableExoticPoolAllowed(bytes32 poolId) external view returns(bool){
+        return _stableExoticPools[poolId];
     }
 
     function isAllowedSwapFeePercentage(bytes32 poolId, uint256 swapFeePercentage) public view override returns (bool){
-        if (_stableBlueChipsPools[poolId] && swapFeePercentage >= minSwapFeePercentageStablePool) {
+        if (_stableBlueChipsPools[poolId] && swapFeePercentage >= minSwapFeePercentageStableBCPool) {
+            return true;
+        } else if (_stableExoticPools[poolId] && swapFeePercentage >= minSwapFeePercentageStableExoticPool) {
             return true;
         } else if (_regularPools[poolId] && swapFeePercentage >= minSwapFeePercentageRegularPool) {
             return true;
-        } else if (swapFeePercentage <= maxSwapFeePercentage && swapFeePercentage >= minSwapFeePercentageVolatilePool) {
+        } else if (swapFeePercentage == maxSwapFeePercentage) {
             return true;
         }
         return false;
