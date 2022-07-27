@@ -20,13 +20,11 @@ import "./BasePool.sol";
 
 import "hardhat/console.sol";
 
-abstract contract SwapFeeControllableBasePool is ISwapFeeControllablePool, BasePool{
-
+abstract contract SwapFeeControllableBasePool is ISwapFeeControllablePool, BasePool {
     uint256 private constant _DEFAULT_SWAP_FEE_PERCENTAGE = 1e16; // 1% - this fits in 64 bits
     uint256 private _current_swap_fee_percentage;
 
     ISwapFeeController public swapFeeController;
-
 
     constructor(
         IVault vault,
@@ -40,24 +38,35 @@ abstract contract SwapFeeControllableBasePool is ISwapFeeControllablePool, BaseP
         uint256 bufferPeriodDuration,
         address owner,
         ISwapFeeController _swapFeeController
-    ) BasePool(vault, specialization, name, symbol, tokens, assetManagers, swapFeePercentage, pauseWindowDuration, bufferPeriodDuration, owner){
+    ) BasePool(
+        vault,
+        specialization,
+        name,
+        symbol,
+        tokens,
+        assetManagers,
+        swapFeePercentage,
+        pauseWindowDuration,
+        bufferPeriodDuration,
+        owner
+    ){
         // requier
         swapFeeController = _swapFeeController;
     }
 
-    function getSwapFeeController() external view override returns(address){
+    function getSwapFeeController() external view override returns (address){
         return address(swapFeeController);
     }
 
     function _getMinSwapFeePercentage() internal view virtual override returns (uint256) {
-        if(_current_swap_fee_percentage !=0 ){
+        if (_current_swap_fee_percentage != 0) {
             return _current_swap_fee_percentage;
         }
         return _DEFAULT_SWAP_FEE_PERCENTAGE;
     }
 
     function _getMaxSwapFeePercentage() internal view virtual override returns (uint256) {
-        if(_current_swap_fee_percentage != 0){
+        if (_current_swap_fee_percentage != 0) {
             return _current_swap_fee_percentage;
         }
         return _DEFAULT_SWAP_FEE_PERCENTAGE;
@@ -65,11 +74,13 @@ abstract contract SwapFeeControllableBasePool is ISwapFeeControllablePool, BaseP
 
     /**
      * @notice Set the swap fee percentage.
-     * @dev This is a permissioned function, and disabled if the pool is paused. The swap fee must be within values allowed by ISwapFeeController.
-      Emits the SwapFeePercentageChanged event.
+     * @dev This is a permissioned function, and disabled if the pool is paused.
+     The swap fee must be within values allowed by ISwapFeeController.
+     Emits the SwapFeePercentageChanged event.
      */
     function setSwapFeePercentage(uint256 swapFeePercentage) public virtual override authenticate whenNotPaused {
-        _require(swapFeeController.isAllowedSwapFeePercentage(getPoolId(), swapFeePercentage), Errors.SWAP_FEE_DISALLOWED_BY_FEE_CONTROLLER);
+        _require(swapFeeController.isAllowedSwapFeePercentage(
+            getPoolId(), swapFeePercentage), Errors.SWAP_FEE_DISALLOWED_BY_FEE_CONTROLLER);
         _current_swap_fee_percentage = swapFeePercentage;
         _setSwapFeePercentage(swapFeePercentage);
     }

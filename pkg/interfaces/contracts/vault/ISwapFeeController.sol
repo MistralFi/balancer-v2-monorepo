@@ -19,7 +19,15 @@ import "./IVault.sol";
 import "./IAuthorizer.sol";
 
 interface ISwapFeeController {
-    // todo add Events
+
+    event MaxSwapFeePercentageUpdated(uint256 maxSwapFeePercentage);
+    event MinSwapFeePercentageStableBCPoolUpdated(uint256 minSwapFeePercentageStableBCPool);
+    event MinSwapFeePercentageStableExoticPoolUpdated(uint256 minSwapFeePercentageStableExoticPool);
+    event MinSwapFeePercentageRegularPoolUpdated(uint256 minSwapFeePercentageRegularPool);
+
+    event RegularPoolUpdated(bytes32 poolId, bool isAllow);
+    event StableExoticPoolUpdated(bytes32 poolId, bool isAllow);
+    event StableBlueChipsPoolUpdated(bytes32 poolId, bool isAllow);
 
     /**
      * @notice Return true if swapFeePercentage is allowed for the given pool .
