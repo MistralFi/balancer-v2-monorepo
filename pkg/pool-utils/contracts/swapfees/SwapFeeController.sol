@@ -21,6 +21,14 @@ import "@balancer-labs/v2-solidity-utils/contracts/helpers/Authentication.sol";
 
 /**
  * @dev SwapFeeController is a separate contract which encapsulates protocol strategy regarding swap fees.
+ *
+ * In this implementation we ahve 4 levels of pools:
+ * 1. default pool - swap fee is equals maxSwapFeePercentage
+ * 2. regular pool - minSwapFeePercentageRegularPool <= swap_fee <= maxSwapFeePercentage
+ * 3. stableExotic pool - minSwapFeePercentageStableExoticPool <= swap_fee <= maxSwapFeePercentage
+ * 4. stableBlueChips pool - minSwapFeePercentageStableBCPool <= swap_fee <= maxSwapFeePercentage
+ *
+ * Vault's authorizer should grant permission to setPermission* functions.
  */
 contract SwapFeeController is ISwapFeeController, Authentication {
     // 1e18 corresponds to 1.0, or a 100% fee
@@ -68,16 +76,25 @@ contract SwapFeeController is ISwapFeeController, Authentication {
         require(fee >= _MIN_SWAP_FEE_PERCENTAGE, "Fee should be within boundaries (small)");
     }
 
+    /**
+     * @notice Add/remove regular pool allowance
+     */
     function setRegularPoolAllowance(bytes32 poolId, bool isAllow) external authenticate {
         _regularPools[poolId] = isAllow;
         emit RegularPoolUpdated(poolId, isAllow);
     }
 
+    /**
+     * @notice Add/remove StableExotic pool allowance
+     */
     function setStableExoticPoolAllowance(bytes32 poolId, bool isAllow) external authenticate {
         _stableExoticPools[poolId] = isAllow;
         emit StableExoticPoolUpdated(poolId, isAllow);
     }
 
+    /**
+     * @notice Add/remove StableBlueChips pool allowance
+     */
     function setStableBlueChipsPoolAllowance(bytes32 poolId, bool isAllow) external authenticate {
         _stableBlueChipsPools[poolId] = isAllow;
         emit StableBlueChipsPoolUpdated(poolId, isAllow);
@@ -95,6 +112,9 @@ contract SwapFeeController is ISwapFeeController, Authentication {
         return _stableExoticPools[poolId];
     }
 
+    /**
+     * @notice Check if the given swapFeePercentage is allowed for the given pool
+     */
     function isAllowedSwapFeePercentage(bytes32 poolId, uint256 swapFeePercentage) public view override returns (bool) {
         if (_stableBlueChipsPools[poolId] && swapFeePercentage >= minSwapFeePercentageStableBCPool) {
             return true;

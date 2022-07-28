@@ -20,10 +20,12 @@ import "@balancer-labs/v2-interfaces/contracts/vault/IMinimalSwapInfoPool.sol";
 import "./SwapFeeControllableBasePool.sol";
 
 /**
- * @dev Extension of `BasePool`, adding a handler for `IMinimalSwapInfoPool.onSwap`.
+ * @dev Extension of `SwapFeeControllableBasePool`, adding a handler for `IMinimalSwapInfoPool.onSwap`.
  *
- * Derived contracts must call `BasePool`'s constructor, and implement `_onSwapGivenIn` and `_onSwapGivenOut` along with
- * `BasePool`'s virtual functions. Inheriting from this contract lets derived contracts choose the Two Token or Minimal
+ * Derived contracts must call `SwapFeeControllableBasePool`'s constructor, and implement `_onSwapGivenIn`
+ * and `_onSwapGivenOut` along with
+ * `SwapFeeControllableBasePool`'s virtual functions. Inheriting from this contract lets derived contracts choose
+ * the Two Token or Minimal.
  * Swap Info specialization settings.
  */
 abstract contract SFCBaseMinimalSwapInfoPool is IMinimalSwapInfoPool, SwapFeeControllableBasePool {

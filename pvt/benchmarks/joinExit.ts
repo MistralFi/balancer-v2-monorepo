@@ -19,6 +19,7 @@ const maxManagedTokens = 38;
 const managedPoolStep = 5;
 
 let vault: Vault;
+let swapFeeController: Contract;
 let tokens: TokenList;
 
 let trader: SignerWithAddress;
@@ -28,7 +29,7 @@ const printTokens = (poolType: string, numTokens: number) => {
 };
 
 async function main() {
-  ({ vault, tokens, trader } = await setupEnvironment());
+  ({ vault, swapFeeController, tokens, trader } = await setupEnvironment());
 
   console.log('== Full join/exit (no initial BPT) ==');
 
@@ -41,7 +42,7 @@ async function main() {
   for (let numTokens = 2; numTokens <= 20; numTokens += 2) {
     printTokens('Weighted pool', numTokens);
     await joinAndExitWeightedPool(
-      () => getWeightedPool(vault, tokens, numTokens, 0),
+      () => getWeightedPool(vault, swapFeeController, tokens, numTokens, 0),
       numTokens,
       true,
       joinWeightedUserData,
@@ -53,7 +54,7 @@ async function main() {
   for (let numTokens = managedPoolMin; numTokens <= managedPoolMax; numTokens += managedPoolStep) {
     printTokens('Managed pool', numTokens);
     await joinAndExitWeightedPool(
-      () => getWeightedPool(vault, tokens, numTokens),
+      () => getWeightedPool(vault, swapFeeController, tokens, numTokens),
       numTokens,
       true,
       joinWeightedUserData,
@@ -64,7 +65,7 @@ async function main() {
 
   printTokens('Managed pool', maxManagedTokens);
   await joinAndExitWeightedPool(
-    () => getWeightedPool(vault, tokens, maxManagedTokens),
+    () => getWeightedPool(vault, swapFeeController, tokens, maxManagedTokens),
     maxManagedTokens,
     true,
     joinWeightedUserData,
@@ -76,7 +77,7 @@ async function main() {
   // Stable have a max of 5
   for (let numTokens = 2; numTokens <= 4; numTokens += 2) {
     printTokens('Stable pool', numTokens);
-    await joinAndExitStablePool(() => getStablePool(vault, tokens, numTokens), true);
+    await joinAndExitStablePool(() => getStablePool(vault, swapFeeController, tokens, numTokens), true);
   }
   console.log('\n');
 
@@ -86,7 +87,7 @@ async function main() {
   for (let numTokens = 2; numTokens <= 20; numTokens += 2) {
     printTokens('Weighted pool', numTokens);
     await joinAndExitWeightedPool(
-      () => getWeightedPool(vault, tokens, numTokens, 0),
+      () => getWeightedPool(vault, swapFeeController, tokens, numTokens, 0),
       numTokens,
       false,
       joinWeightedUserData,
@@ -98,7 +99,7 @@ async function main() {
   for (let numTokens = managedPoolMin; numTokens <= managedPoolMax; numTokens += managedPoolStep) {
     printTokens('Managed pool', numTokens);
     await joinAndExitWeightedPool(
-      () => getWeightedPool(vault, tokens, numTokens),
+      () => getWeightedPool(vault, swapFeeController, tokens, numTokens),
       numTokens,
       false,
       joinWeightedUserData,
@@ -109,7 +110,7 @@ async function main() {
 
   printTokens('Managed pool', maxManagedTokens);
   await joinAndExitWeightedPool(
-    () => getWeightedPool(vault, tokens, maxManagedTokens),
+    () => getWeightedPool(vault, swapFeeController, tokens, maxManagedTokens),
     maxManagedTokens,
     false,
     joinWeightedUserData,
@@ -121,7 +122,7 @@ async function main() {
   // Stable have a max of 5
   for (let numTokens = 2; numTokens <= 4; numTokens += 2) {
     printTokens('Stable pool', numTokens);
-    await joinAndExitStablePool(() => getStablePool(vault, tokens, numTokens), false);
+    await joinAndExitStablePool(() => getStablePool(vault, swapFeeController, tokens, numTokens), false);
   }
   console.log('\n');
 
@@ -132,7 +133,7 @@ async function main() {
   for (let numTokens = 2; numTokens <= 20; numTokens += 2) {
     printTokens('Weighted pool', numTokens);
     await joinAndExitWeightedPool(
-      () => getWeightedPool(vault, tokens, numTokens, 0),
+      () => getWeightedPool(vault, swapFeeController, tokens, numTokens, 0),
       numTokens,
       true,
       joinWeightedUserData,
@@ -145,7 +146,7 @@ async function main() {
   for (let numTokens = managedPoolMin; numTokens <= managedPoolMax; numTokens += managedPoolStep) {
     printTokens('Managed pool', numTokens);
     await joinAndExitWeightedPool(
-      () => getWeightedPool(vault, tokens, numTokens),
+      () => getWeightedPool(vault, swapFeeController, tokens, numTokens),
       numTokens,
       true,
       joinWeightedUserData,
@@ -157,7 +158,7 @@ async function main() {
 
   printTokens('Managed pool', maxManagedTokens);
   await joinAndExitWeightedPool(
-    () => getWeightedPool(vault, tokens, maxManagedTokens),
+    () => getWeightedPool(vault, swapFeeController, tokens, maxManagedTokens),
     maxManagedTokens,
     true,
     joinWeightedUserData,
@@ -168,7 +169,11 @@ async function main() {
 
   for (let numTokens = 2; numTokens <= 4; numTokens += 2) {
     printTokens('Stable pool', numTokens);
-    await joinAndExitStablePool(() => getStablePool(vault, tokens, numTokens), true, numberJoinsExits);
+    await joinAndExitStablePool(
+      () => getStablePool(vault, swapFeeController, tokens, numTokens),
+      true,
+      numberJoinsExits
+    );
   }
   console.log('\n');
 
@@ -177,7 +182,7 @@ async function main() {
   for (let numTokens = 2; numTokens <= 20; numTokens += 2) {
     printTokens('Weighted pool', numTokens);
     await joinAndExitWeightedPool(
-      () => getWeightedPool(vault, tokens, numTokens, 0),
+      () => getWeightedPool(vault, swapFeeController, tokens, numTokens, 0),
       numTokens,
       false,
       joinWeightedUserData,
@@ -190,7 +195,7 @@ async function main() {
   for (let numTokens = managedPoolMin; numTokens <= managedPoolMax; numTokens += managedPoolStep) {
     printTokens('Managed pool', numTokens);
     await joinAndExitWeightedPool(
-      () => getWeightedPool(vault, tokens, numTokens),
+      () => getWeightedPool(vault, swapFeeController, tokens, numTokens),
       numTokens,
       false,
       joinWeightedUserData,
@@ -202,7 +207,7 @@ async function main() {
 
   printTokens('Managed pool', maxManagedTokens);
   await joinAndExitWeightedPool(
-    () => getWeightedPool(vault, tokens, maxManagedTokens),
+    () => getWeightedPool(vault, swapFeeController, tokens, maxManagedTokens),
     maxManagedTokens,
     false,
     joinWeightedUserData,
@@ -213,7 +218,11 @@ async function main() {
 
   for (let numTokens = 2; numTokens <= 4; numTokens += 2) {
     printTokens('Stable pool', numTokens);
-    await joinAndExitStablePool(() => getStablePool(vault, tokens, numTokens), false, numberJoinsExits);
+    await joinAndExitStablePool(
+      () => getStablePool(vault, swapFeeController, tokens, numTokens),
+      false,
+      numberJoinsExits
+    );
   }
 }
 
