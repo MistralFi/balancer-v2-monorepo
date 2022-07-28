@@ -26,7 +26,7 @@ describe('BalancerQueries', function () {
 
   sharedBeforeEach('deploy and initialize pool', async () => {
     tokens = await TokenList.create(2, { sorted: true });
-    pool = await WeightedPool.create({ tokens, swapFeePercentage: fp(0.000001), fromFactory: true });
+    pool = await WeightedPool.create({ tokens, swapFeePercentage: fp(0.01), fromFactory: true });
     vault = pool.vault;
 
     await tokens.mint({ to: lp, amount: fp(100) });
@@ -61,8 +61,7 @@ describe('BalancerQueries', function () {
         },
         { sender, recipient, fromInternalBalance, toInternalBalance }
       );
-
-      expect(result).to.be.equalWithError(expectedAmountOut, 0.0001);
+      expect(result).to.be.equalWithError(expectedAmountOut, fp(0.00000000000000001));
     });
 
     it('bubbles up revert reasons', async () => {
