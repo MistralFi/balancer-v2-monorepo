@@ -19,7 +19,6 @@ import "./IVault.sol";
 import "./IAuthorizer.sol";
 
 interface ISwapFeeController {
-
     event MaxSwapFeePercentageUpdated(uint256 maxSwapFeePercentage);
     event MinSwapFeePercentageStableBCPoolUpdated(uint256 minSwapFeePercentageStableBCPool);
     event MinSwapFeePercentageStableExoticPoolUpdated(uint256 minSwapFeePercentageStableExoticPool);
@@ -37,5 +36,4 @@ interface ISwapFeeController {
     function getAuthorizer() external view returns (IAuthorizer);
 
     function vault() external view returns (IVault);
-
 }

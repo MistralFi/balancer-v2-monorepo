@@ -16,8 +16,6 @@ pragma solidity ^0.7.0;
 
 import "./IBasePool.sol";
 
-interface ISwapFeeControllablePool{
-
-    function getSwapFeeController() external view returns(address);
-
+interface ISwapFeeControllablePool {
+    function getSwapFeeController() external view returns (address);
 }
