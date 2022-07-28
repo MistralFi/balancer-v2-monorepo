@@ -18,6 +18,11 @@ import "@balancer-labs/v2-interfaces/contracts/vault/ISwapFeeControllablePool.so
 import "@balancer-labs/v2-interfaces/contracts/vault/ISwapFeeController.sol";
 import "./BasePool.sol";
 
+/**
+ * @dev Extension of `BasePool`, adding swapFeesController and extension to control pool's fees by level.
+ *
+ *  setSwapFeePercentage depends on SwapFeesController.isAllowedSwapFeePercentage
+ */
 abstract contract SwapFeeControllableBasePool is ISwapFeeControllablePool, BasePool {
     uint256 private constant _DEFAULT_SWAP_FEE_PERCENTAGE = 1e16; // 1% - this fits in 64 bits
     uint256 private _currentSwapFeePercentage;
