@@ -135,7 +135,6 @@ library Errors {
     uint256 internal constant DISABLED = 211;
     uint256 internal constant SWAP_FEE_DISALLOWED_BY_FEE_CONTROLLER = 212;
 
-
     // Pools
     uint256 internal constant MIN_AMP = 300;
     uint256 internal constant MAX_AMP = 301;
