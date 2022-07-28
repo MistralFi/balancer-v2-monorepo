@@ -75,7 +75,8 @@ contract WeightedPool is BaseWeightedPool, WeightedPoolProtocolFees {
         IProtocolFeePercentagesProvider protocolFeeProvider,
         uint256 pauseWindowDuration,
         uint256 bufferPeriodDuration,
-        address owner
+        address owner,
+        ISwapFeeController swapFeeController
     )
         BaseWeightedPool(
             vault,
@@ -87,7 +88,8 @@ contract WeightedPool is BaseWeightedPool, WeightedPoolProtocolFees {
             pauseWindowDuration,
             bufferPeriodDuration,
             owner,
-            false
+            false,
+            swapFeeController
         )
         ProtocolFeeCache(protocolFeeProvider, ProtocolFeeCache.DELEGATE_PROTOCOL_SWAP_FEES_SENTINEL)
         WeightedPoolProtocolFees(params.tokens.length, params.rateProviders)

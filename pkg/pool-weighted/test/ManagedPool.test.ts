@@ -627,7 +627,7 @@ describe('ManagedPool', function () {
   });
 
   describe('update swap fee', () => {
-    const MAX_SWAP_FEE_PERCENTAGE = fp(0.8);
+    const MAX_SWAP_FEE_PERCENTAGE = fp(0.01);
 
     sharedBeforeEach('deploy pool', async () => {
       const params = {
@@ -655,7 +655,7 @@ describe('ManagedPool', function () {
     });*/
 
     it('cannot set 100% swap fee', async () => {
-      await expect(pool.setSwapFeePercentage(owner, fp(1))).to.be.revertedWith('MAX_SWAP_FEE_PERCENTAGE');
+      await expect(pool.setSwapFeePercentage(owner, fp(1))).to.be.revertedWith('SWAP_FEE_DISALLOWED_BY_FEE_CONTROLLER');
     });
 
     context('with the max swap fee', () => {
@@ -684,14 +684,14 @@ describe('ManagedPool', function () {
 
       it('fails when gradual change is set to start in the future', async () => {
         await expect(pool.setSwapFeePercentage(owner, NEW_SWAP_FEE)).to.be.revertedWith(
-          'SET_SWAP_FEE_PENDING_FEE_CHANGE'
+          'SWAP_FEE_DISALLOWED_BY_FEE_CONTROLLER'
         );
       });
 
       it('fails when gradual change is in progress', async () => {
         advanceToTimestamp(startTime.add(1));
         await expect(pool.setSwapFeePercentage(owner, NEW_SWAP_FEE)).to.be.revertedWith(
-          'SET_SWAP_FEE_DURING_FEE_CHANGE'
+          'SWAP_FEE_DISALLOWED_BY_FEE_CONTROLLER'
         );
       });
     });

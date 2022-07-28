@@ -21,7 +21,8 @@
     "compile:watch": "nodemon --ext sol --exec yarn compile",
     "lint": "yarn lint:solidity && yarn lint:typescript",
     "lint:solidity": "solhint 'contracts/**/*.sol'",
-    "lint:typescript": "eslint . --ext .ts --ignore-path ../../.eslintignore  --max-warnings 0"
+    "lint:typescript": "eslint . --ext .ts --ignore-path ../../.eslintignore  --max-warnings 0",
+    "format:solidity": "../../node_modules/.bin/prettier --write **/*.sol"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
