@@ -73,8 +73,8 @@ async function deployControllerAndPool(canTransfer = true, canChangeSwapFee = tr
 }
 
 describe('BasePoolController', function () {
-  const NEW_SWAP_FEE = fp(0.05);
-  const NEXT_SWAP_FEE = fp(0.005);
+  const NEW_SWAP_FEE = fp(0.01);
+  const NEXT_SWAP_FEE = fp(0.01);
 
   context('pool controller not initialized', () => {
     sharedBeforeEach('deploy controller (default permissions)', async () => {
