@@ -19,12 +19,17 @@ import "@balancer-labs/v2-interfaces/contracts/vault/IVault.sol";
 
 import "@balancer-labs/v2-pool-utils/contracts/factories/BasePoolSplitCodeFactory.sol";
 import "@balancer-labs/v2-pool-utils/contracts/factories/FactoryWidePauseWindow.sol";
+import "@balancer-labs/v2-interfaces/contracts/vault/ISwapFeeController.sol";
 
 import "./LiquidityBootstrappingPool.sol";
 
 contract LiquidityBootstrappingPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
-    constructor(IVault vault) BasePoolSplitCodeFactory(vault, type(LiquidityBootstrappingPool).creationCode) {
-        // solhint-disable-previous-line no-empty-blocks
+    ISwapFeeController public immutable swapFeeController;
+
+    constructor(IVault vault, ISwapFeeController _swapFeeController)
+        BasePoolSplitCodeFactory(vault, type(LiquidityBootstrappingPool).creationCode)
+    {
+        swapFeeController = _swapFeeController;
     }
 
     /**
@@ -53,7 +58,8 @@ contract LiquidityBootstrappingPoolFactory is BasePoolSplitCodeFactory, FactoryW
                     pauseWindowDuration,
                     bufferPeriodDuration,
                     owner,
-                    swapEnabledOnStart
+                    swapEnabledOnStart,
+                    swapFeeController
                 )
             );
     }

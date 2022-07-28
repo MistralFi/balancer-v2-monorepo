@@ -1,4 +1,4 @@
-import { BigNumber, ContractReceipt } from 'ethers';
+import { BigNumber, Contract, ContractReceipt } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
 
 import { BigNumberish } from '../../../numbers';
@@ -31,6 +31,7 @@ export type RawWeightedPoolDeployment = {
   admin?: SignerWithAddress;
   from?: SignerWithAddress;
   vault?: Vault;
+  swapFeeController?: Contract;
   fromFactory?: boolean;
   poolType?: WeightedPoolType;
 };
