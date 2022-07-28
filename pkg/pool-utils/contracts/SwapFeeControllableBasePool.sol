@@ -50,7 +50,7 @@ abstract contract SwapFeeControllableBasePool is ISwapFeeControllablePool, BaseP
             owner
         )
     {
-        require(_swapFeeController != address(0), "SwapFeeController can't be empty");
+        require(address(_swapFeeController) != address(0), "SwapFeeController can't be empty");
         swapFeeController = _swapFeeController;
     }
 
