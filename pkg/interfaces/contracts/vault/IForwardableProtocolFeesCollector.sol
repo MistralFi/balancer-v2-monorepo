@@ -20,5 +20,9 @@ import "@balancer-labs/v2-interfaces/contracts/vault/IForwarder.sol";
 import "./IProtocolFeesCollector.sol";
 
 interface IForwardableProtocolFeesCollector is IProtocolFeesCollector {
-    function forwardFee(address poolAddress, IERC20 token, uint256 amount) external;
+    function forwardFee(
+        address poolAddress,
+        IERC20 token,
+        uint256 amount
+    ) external;
 }
