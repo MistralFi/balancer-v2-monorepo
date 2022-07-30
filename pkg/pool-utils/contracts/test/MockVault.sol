@@ -33,6 +33,7 @@ contract MockVault is IPoolSwapStructs {
 
     IAuthorizer private _authorizer;
     IProtocolFeesCollector private _protocolFeesCollector;
+    address private _feeForwarder;
 
     mapping(bytes32 => Pool) private pools;
 
@@ -46,8 +47,9 @@ contract MockVault is IPoolSwapStructs {
         uint256[] protocolFees
     );
 
-    constructor(IAuthorizer authorizer) {
+    constructor(IAuthorizer authorizer, address feeForwarder) {
         _authorizer = authorizer;
+        _feeForwarder = feeForwarder;
         _protocolFeesCollector = new ProtocolFeesCollector(IVault(address(this)));
     }
 
