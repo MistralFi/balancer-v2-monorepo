@@ -16,8 +16,9 @@ pragma solidity ^0.7.0;
 
 pragma experimental ABIEncoderV2;
 
+import "@balancer-labs/v2-interfaces/contracts/vault/IForwarder.sol";
 import "./IProtocolFeesCollector.sol";
 
 interface IForwardableProtocolFeesCollector is IProtocolFeesCollector {
-    function getFeeDestination() external view returns (address);
+    function forwardFee(address poolAddress, IERC20 token, uint256 amount) external;
 }

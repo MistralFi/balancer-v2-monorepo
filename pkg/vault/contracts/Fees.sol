@@ -18,6 +18,7 @@ pragma experimental ABIEncoderV2;
 import "@balancer-labs/v2-interfaces/contracts/solidity-utils/helpers/BalancerErrors.sol";
 import "@balancer-labs/v2-interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol";
 import "@balancer-labs/v2-interfaces/contracts/vault/IVault.sol";
+import "@balancer-labs/v2-interfaces/contracts/vault/IForwarder.sol";
 
 import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/ReentrancyGuard.sol";
 import "@balancer-labs/v2-solidity-utils/contracts/math/FixedPoint.sol";
@@ -35,7 +36,7 @@ abstract contract Fees is IVault {
 
     ForwardableProtocolFeesCollector private immutable _protocolFeesCollector;
 
-    constructor(address feeForwarder) {
+    constructor(IForwarder feeForwarder) {
         _protocolFeesCollector = new ForwardableProtocolFeesCollector(IVault(this), feeForwarder);
     }
 
@@ -60,9 +61,17 @@ abstract contract Fees is IVault {
         return FixedPoint.mulUp(amount, percentage);
     }
 
-    function _payFeeAmount(IERC20 token, uint256 amount) internal {
+    function _payFeeAmount(
+        address poolAddress,
+        IERC20 token,
+        uint256 amount,
+        bool isFlashLoan
+    ) internal {
         if (amount > 0) {
-            token.safeTransfer(address(getProtocolFeesCollector().getFeeDestination()), amount);
+            token.safeTransfer(address(_protocolFeesCollector), amount);
+            if (!isFlashLoan) {
+                _protocolFeesCollector.forwardFee(poolAddress, token, amount);
+            }
         }
     }
 }

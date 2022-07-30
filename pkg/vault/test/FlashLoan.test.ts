@@ -120,10 +120,10 @@ describe('Flash Loans', () => {
       await expectBalanceChange(
         () => vault.connect(other).flashLoan(recipient.address, [tokens.DAI.address], [loan], '0x10'),
         tokens,
-        { account: feeForwarder, changes: { DAI: feeAmount } }
+        { account: feesCollector, changes: { DAI: feeAmount } }
       );
 
-      expect((await feeForwarder.getCollectedFeeAmounts([tokens.DAI.address]))[0]).to.equal(feeAmount);
+      expect((await feesCollector.getCollectedFeeAmounts([tokens.DAI.address]))[0]).to.equal(feeAmount);
     });
 
     it('protocol fees are rounded up', async () => {
@@ -133,10 +133,10 @@ describe('Flash Loans', () => {
       await expectBalanceChange(
         () => vault.connect(other).flashLoan(recipient.address, [tokens.DAI.address], [loan], '0x10'),
         tokens,
-        { account: feeForwarder, changes: { DAI: feeAmount } }
+        { account: feesCollector, changes: { DAI: feeAmount } }
       );
 
-      expect((await feeForwarder.getCollectedFeeAmounts([tokens.DAI.address]))[0]).to.equal(feeAmount);
+      expect((await feesCollector.getCollectedFeeAmounts([tokens.DAI.address]))[0]).to.equal(feeAmount);
     });
 
     it('excess fees can be paid', async () => {
@@ -148,10 +148,10 @@ describe('Flash Loans', () => {
       const tx: ContractTransaction = await expectBalanceChange(
         () => vault.connect(other).flashLoan(recipient.address, [tokens.DAI.address], [bn(1e18)], '0x10'),
         tokens,
-        { account: feeForwarder, changes: { DAI: feeAmount } }
+        { account: feesCollector, changes: { DAI: feeAmount } }
       );
 
-      expect(await feeForwarder.getCollectedFeeAmounts([tokens.DAI.address])).to.deep.equal([feeAmount]);
+      expect(await feesCollector.getCollectedFeeAmounts([tokens.DAI.address])).to.deep.equal([feeAmount]);
 
       expectEvent.inReceipt(await tx.wait(), 'FlashLoan', {
         recipient: recipient.address,
@@ -192,11 +192,11 @@ describe('Flash Loans', () => {
               .connect(other)
               .flashLoan(recipient.address, [tokens.DAI.address, tokens.MKR.address], amounts, '0x10'),
           tokens,
-          { account: feeForwarder, changes: { DAI: feeAmounts[0], MKR: feeAmounts[1] } }
+          { account: feesCollector, changes: { DAI: feeAmounts[0], MKR: feeAmounts[1] } }
         );
 
-        expect(await feeForwarder.getCollectedFeeAmounts([tokens.DAI.address])).to.deep.equal([feeAmounts[0]]);
-        expect(await feeForwarder.getCollectedFeeAmounts([tokens.MKR.address])).to.deep.equal([feeAmounts[1]]);
+        expect(await feesCollector.getCollectedFeeAmounts([tokens.DAI.address])).to.deep.equal([feeAmounts[0]]);
+        expect(await feesCollector.getCollectedFeeAmounts([tokens.MKR.address])).to.deep.equal([feeAmounts[1]]);
       });
 
       it('all balance can be loaned', async () => {
