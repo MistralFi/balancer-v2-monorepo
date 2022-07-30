@@ -23,7 +23,7 @@ import "../solidity-utils/misc/IWETH.sol";
 import "./IAsset.sol";
 import "./IAuthorizer.sol";
 import "./IFlashLoanRecipient.sol";
-import "./IProtocolFeesCollector.sol";
+import "./IForwardableProtocolFeesCollector.sol";
 
 pragma solidity ^0.7.0;
 
@@ -745,7 +745,7 @@ interface IVault is ISignaturesValidator, ITemporarilyPausable, IAuthentication 
     /**
      * @dev Returns the current protocol fee module.
      */
-    function getProtocolFeesCollector() external view returns (IProtocolFeesCollector);
+    function getProtocolFeesCollector() external view returns (IForwardableProtocolFeesCollector);
 
     /**
      * @dev Safety mechanism to pause most Vault operations in the event of an emergency - typically detection of an
