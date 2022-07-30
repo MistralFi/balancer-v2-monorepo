@@ -63,7 +63,7 @@ contract Vault is VaultAuthorization, FlashLoans, Swaps {
         IWETH weth,
         uint256 pauseWindowDuration,
         uint256 bufferPeriodDuration,
-        address feeForwarder
+        IForwarder feeForwarder
     )
         VaultAuthorization(authorizer)
         AssetHelpers(weth)

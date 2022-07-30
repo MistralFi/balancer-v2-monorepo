@@ -18,11 +18,9 @@ import "@balancer-labs/v2-interfaces/contracts/vault/IForwarder.sol";
 import "@balancer-labs/v2-interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol";
 
 contract MockForwarder is IForwarder {
+    function registerIncome(address[] memory tokens, address destination) external override {}
+
     function distribute(address token) external override {}
-
-    function setInvestFundRatio(uint256 value) external override {}
-
-    function setGaugesRatio(uint256 value) external override {}
 
     //@dev this method in artificial and needed for tests backward computability with feesCollector contract
     function getCollectedFeeAmounts(IERC20[] memory tokens) external view returns (uint256[] memory feeAmounts) {

@@ -27,14 +27,27 @@ import "./ProtocolFeesCollector.sol";
  * to the Vault's own authorizer.
  */
 contract ForwardableProtocolFeesCollector is IForwardableProtocolFeesCollector, ProtocolFeesCollector {
-    address public immutable feeForwarder;
+    using SafeERC20 for IERC20;
+    IForwarder public immutable feeForwarder;
 
-    constructor(IVault _vault, address _feeForwarder) ProtocolFeesCollector(_vault) {
+    constructor(IVault _vault, IForwarder _feeForwarder) ProtocolFeesCollector(_vault) {
         require(address(_feeForwarder) != address(0), "FeeForwarder should be specified");
         feeForwarder = _feeForwarder;
     }
 
-    function getFeeDestination() external view override returns (address) {
-        return feeForwarder;
+    function forwardFee(
+        address poolAddress,
+        IERC20 token,
+        uint256 amount
+    ) external override {
+        require(msg.sender == address(vault), "Only vault can forward fees");
+        require(token.balanceOf(address(this)) >= amount, "Insufficient balance");
+        if (amount > 0) {
+            token.safeTransfer(address(feeForwarder), amount);
+            address[] memory tokens = new address[](1);
+            tokens[0] = address(token);
+            feeForwarder.registerIncome(tokens, poolAddress);
+            feeForwarder.distribute(address(token));
+        }
     }
 }
