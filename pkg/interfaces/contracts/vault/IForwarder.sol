@@ -17,9 +17,7 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 interface IForwarder {
+    function registerIncome(address[] memory tokens, address destination) external;
 
-  function registerIncome(address[] memory tokens, address destination) external;
-
-  function distribute(address token) external;
-
+    function distribute(address token) external;
 }

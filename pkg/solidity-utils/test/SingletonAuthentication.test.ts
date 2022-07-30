@@ -23,7 +23,9 @@ describe('SingletonAuthentication', () => {
 
     authorizer = await deploy('v2-vault/TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
     const feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
-    authorizedVault = await deploy('v2-vault/Vault', { args: [authorizer.address, WETH.address, MONTH, MONTH, feeForwarder.address] });
+    authorizedVault = await deploy('v2-vault/Vault', {
+      args: [authorizer.address, WETH.address, MONTH, MONTH, feeForwarder.address],
+    });
 
     const action = await actionId(authorizedVault, 'setAuthorizer');
     await authorizer.connect(admin).grantPermissions([action], admin.address, [ANY_ADDRESS]);
