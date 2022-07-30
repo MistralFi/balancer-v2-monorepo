@@ -27,10 +27,9 @@ import "./ProtocolFeesCollector.sol";
  * to the Vault's own authorizer.
  */
 contract ForwardableProtocolFeesCollector is IForwardableProtocolFeesCollector, ProtocolFeesCollector {
-
     address public immutable feeForwarder;
 
-    constructor(IVault _vault, address _feeForwarder) ProtocolFeesCollector(_vault){
+    constructor(IVault _vault, address _feeForwarder) ProtocolFeesCollector(_vault) {
         require(address(_feeForwarder) != address(0), "FeeForwarder should be specified");
         feeForwarder = _feeForwarder;
     }
@@ -38,5 +37,4 @@ contract ForwardableProtocolFeesCollector is IForwardableProtocolFeesCollector, 
     function getFeeDestination() external view override returns (address) {
         return feeForwarder;
     }
-
 }
