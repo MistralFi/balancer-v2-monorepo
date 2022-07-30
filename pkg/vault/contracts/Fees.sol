@@ -23,7 +23,7 @@ import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/ReentrancyGuard.
 import "@balancer-labs/v2-solidity-utils/contracts/math/FixedPoint.sol";
 import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/SafeERC20.sol";
 
-import "./ProtocolFeesCollector.sol";
+import "./ForwardableProtocolFeesCollector.sol";
 import "./VaultAuthorization.sol";
 
 /**
@@ -33,13 +33,13 @@ import "./VaultAuthorization.sol";
 abstract contract Fees is IVault {
     using SafeERC20 for IERC20;
 
-    ProtocolFeesCollector private immutable _protocolFeesCollector;
+    ForwardableProtocolFeesCollector private immutable _protocolFeesCollector;
 
-    constructor() {
-        _protocolFeesCollector = new ProtocolFeesCollector(IVault(this));
+    constructor(address feeForwarder) {
+        _protocolFeesCollector = new ForwardableProtocolFeesCollector(IVault(this), feeForwarder);
     }
 
-    function getProtocolFeesCollector() public view override returns (IProtocolFeesCollector) {
+    function getProtocolFeesCollector() public view override returns (IForwardableProtocolFeesCollector) {
         return _protocolFeesCollector;
     }
 
@@ -62,7 +62,7 @@ abstract contract Fees is IVault {
 
     function _payFeeAmount(IERC20 token, uint256 amount) internal {
         if (amount > 0) {
-            token.safeTransfer(address(getProtocolFeesCollector()), amount);
+            token.safeTransfer(address(getProtocolFeesCollector().getFeeDestination()), amount);
         }
     }
 }

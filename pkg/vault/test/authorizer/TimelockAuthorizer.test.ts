@@ -35,8 +35,9 @@ describe('TimelockAuthorizer', () => {
 
   sharedBeforeEach('deploy authorizer', async () => {
     const oldAuthorizer = await TimelockAuthorizer.create({ root });
+    const feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
 
-    vault = await deploy('Vault', { args: [oldAuthorizer.address, ZERO_ADDRESS, 0, 0] });
+    vault = await deploy('Vault', { args: [oldAuthorizer.address, ZERO_ADDRESS, 0, 0, feeForwarder.address] });
     authorizer = await TimelockAuthorizer.create({ root, vault });
     authenticatedContract = await deploy('MockAuthenticatedContract', { args: [vault.address] });
 
