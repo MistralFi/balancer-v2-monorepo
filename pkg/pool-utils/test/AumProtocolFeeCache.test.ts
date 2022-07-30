@@ -28,7 +28,11 @@ describe('AumProtocolFeeCache', () => {
     const WETH = await TokensDeployer.deployToken({ symbol: 'WETH' });
 
     authorizer = await deploy('v2-vault/TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
-    vault = await deploy('v2-vault/Vault', { args: [authorizer.address, WETH.address, MONTH, MONTH] });
+    const feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
+
+    vault = await deploy('v2-vault/Vault', {
+      args: [authorizer.address, WETH.address, MONTH, MONTH, feeForwarder.address],
+    });
 
     aumProtocolFeesCollector = await deploy('v2-standalone-utils/AumProtocolFeesCollector', { args: [vault.address] });
 
