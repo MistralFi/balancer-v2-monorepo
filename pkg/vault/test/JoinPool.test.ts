@@ -515,6 +515,11 @@ describe('Join Pool', () => {
           const currentCollectedFees: BigNumber[] = await feeForwarder.getCollectedFeeAmounts(tokens.addresses);
 
           expect(arraySub(currentCollectedFees, previousCollectedFees)).to.deep.equal(dueProtocolFeeAmounts);
+
+          const isAllZero = dueProtocolFeeAmounts.every((item) => item.toString() === '0');
+          if (!isAllZero) {
+            expect(await feeForwarder.lastDestination()).is.eq(pool.address);
+          }
         });
 
         it('joins multiple times', async () => {
