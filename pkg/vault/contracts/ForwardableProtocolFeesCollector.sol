@@ -47,7 +47,6 @@ contract ForwardableProtocolFeesCollector is IForwardableProtocolFeesCollector, 
             address[] memory tokens = new address[](1);
             tokens[0] = address(token);
             feeForwarder.registerIncome(tokens, poolAddress);
-            feeForwarder.distribute(address(token));
         }
     }
 }
