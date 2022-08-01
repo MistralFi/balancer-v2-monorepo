@@ -83,16 +83,16 @@ describe('SwapFeeController.test', function () {
     it('user should not be able to add pool', async () => {
       const swapFeeController = await deploySwapFeeController();
       await expect(
-        swapFeeController.connect(other).setRegularPoolAllowance(ethers.utils.id('some pool'), true)
+        swapFeeController.connect(other).setRegularPoolAllowance([ethers.utils.id('some pool')], [true])
       ).is.revertedWith('SENDER_NOT_ALLOWED');
     });
 
     it('authorizer can grant RegularPool permission to user', async () => {
       const swapFeeController = await deploySwapFeeController();
-      const action = await actionId(swapFeeController, 'setRegularPoolAllowance(bytes32,bool)');
+      const action = await actionId(swapFeeController, 'setRegularPoolAllowance(bytes32[],bool[])');
       await authorizer.connect(admin).grantPermissions([action], other.address, [ANY_ADDRESS]);
       const poolId = ethers.utils.id('some pool');
-      await swapFeeController.connect(other).setRegularPoolAllowance(poolId, true);
+      await swapFeeController.connect(other).setRegularPoolAllowance([poolId], [true]);
       expect(await swapFeeController.isRegularPoolAllowed(poolId)).is.eq(true);
       expect(
         await swapFeeController.isAllowedSwapFeePercentage(poolId, DEFAULT_MIN_SWAP_FEE_PERCENTAGE_REGULAR_POOL)
@@ -101,10 +101,10 @@ describe('SwapFeeController.test', function () {
 
     it('authorizer can grant StableExoticPool permission to user', async () => {
       const swapFeeController = await deploySwapFeeController();
-      const action = await actionId(swapFeeController, 'setStableExoticPoolAllowance(bytes32,bool)');
+      const action = await actionId(swapFeeController, 'setStableExoticPoolAllowance(bytes32[],bool[])');
       await authorizer.connect(admin).grantPermissions([action], other.address, [ANY_ADDRESS]);
       const poolId = ethers.utils.id('some pool');
-      await swapFeeController.connect(other).setStableExoticPoolAllowance(poolId, true);
+      await swapFeeController.connect(other).setStableExoticPoolAllowance([poolId], [true]);
       expect(await swapFeeController.isStableExoticPoolAllowed(poolId)).is.eq(true);
       expect(
         await swapFeeController.isAllowedSwapFeePercentage(poolId, DEFAULT_MIN_SWAP_FEE_PERCENTAGE_REGULAR_POOL)
@@ -116,10 +116,10 @@ describe('SwapFeeController.test', function () {
 
     it('authorizer can grant StableBlueChipsPool permission to user', async () => {
       const swapFeeController = await deploySwapFeeController();
-      const action = await actionId(swapFeeController, 'setStableBlueChipsPoolAllowance(bytes32,bool)');
+      const action = await actionId(swapFeeController, 'setStableBlueChipsPoolAllowance(bytes32[],bool[])');
       await authorizer.connect(admin).grantPermissions([action], other.address, [ANY_ADDRESS]);
       const poolId = ethers.utils.id('some pool');
-      await swapFeeController.connect(other).setStableBlueChipsPoolAllowance(poolId, true);
+      await swapFeeController.connect(other).setStableBlueChipsPoolAllowance([poolId], [true]);
       expect(await swapFeeController.isStableBlueChipsPoolAllowed(poolId)).is.eq(true);
       expect(
         await swapFeeController.isAllowedSwapFeePercentage(poolId, DEFAULT_MIN_SWAP_FEE_PERCENTAGE_REGULAR_POOL)
