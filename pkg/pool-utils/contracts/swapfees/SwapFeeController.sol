@@ -79,25 +79,33 @@ contract SwapFeeController is ISwapFeeController, Authentication {
     /**
      * @notice Add/remove regular pool allowance
      */
-    function setRegularPoolAllowance(bytes32 poolId, bool isAllow) external authenticate {
-        _regularPools[poolId] = isAllow;
-        emit RegularPoolUpdated(poolId, isAllow);
+    function setRegularPoolAllowance(bytes32[] memory poolIds, bool[] memory isAllows) external authenticate {
+        require(poolIds.length == isAllows.length, "poolIds and isAllows should be the same length");
+        for (uint256 i = 0; i < poolIds.length; i++) {
+            _regularPools[poolIds[i]] = isAllows[i];
+            emit RegularPoolUpdated(poolIds[i], isAllows[i]);
+        }
     }
 
     /**
      * @notice Add/remove StableExotic pool allowance
      */
-    function setStableExoticPoolAllowance(bytes32 poolId, bool isAllow) external authenticate {
-        _stableExoticPools[poolId] = isAllow;
-        emit StableExoticPoolUpdated(poolId, isAllow);
+    function setStableExoticPoolAllowance(bytes32[] memory poolIds, bool[] memory isAllows) external authenticate {
+        require(poolIds.length == isAllows.length, "poolIds and isAllows should be the same length");
+        for (uint256 i = 0; i < poolIds.length; i++) {
+            _stableExoticPools[poolIds[i]] = isAllows[i];
+            emit StableExoticPoolUpdated(poolIds[i], isAllows[i]);
+        }
     }
 
     /**
      * @notice Add/remove StableBlueChips pool allowance
      */
-    function setStableBlueChipsPoolAllowance(bytes32 poolId, bool isAllow) external authenticate {
-        _stableBlueChipsPools[poolId] = isAllow;
-        emit StableBlueChipsPoolUpdated(poolId, isAllow);
+    function setStableBlueChipsPoolAllowance(bytes32[] memory poolIds, bool[] memory isAllows) external authenticate {
+        for (uint256 i = 0; i < poolIds.length; i++) {
+            _stableBlueChipsPools[poolIds[i]] = isAllows[i];
+            emit StableBlueChipsPoolUpdated(poolIds[i], isAllows[i]);
+        }
     }
 
     function isRegularPoolAllowed(bytes32 poolId) external view returns (bool) {
