@@ -13,18 +13,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pragma solidity ^0.7.0;
-pragma experimental ABIEncoderV2;
 
-import "@balancer-labs/v2-interfaces/contracts/pool-utils/IAssetManager.sol";
+import "./IBasePoolRelayer.sol";
 
-import "@balancer-labs/v2-vault/contracts/test/MockPool.sol";
 
-contract MockAssetManagedPool is MockPool {
-    constructor(IVault vault, IVault.PoolSpecialization specialization) MockPool(vault, specialization) {
-        // solhint-disable-previous-line no-empty-blocks
-    }
+interface IRelayer is IBasePoolRelayer {
 
-    function setAssetManagerPoolConfig(address assetManager, bytes memory poolConfig) public {
-        IAssetManager(assetManager).setConfig(getPoolId(), poolConfig);
-    }
+  function claimAssetManagerRewards(bytes32 poolId) external;
+
 }
