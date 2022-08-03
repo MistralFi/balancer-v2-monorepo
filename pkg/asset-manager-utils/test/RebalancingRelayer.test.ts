@@ -43,7 +43,7 @@ describe('RebalancingRelayer', function () {
     vault = await deploy('v2-vault/Vault', {
       args: [authorizer.address, tokens.WETH.address, 0, 0, feeForwarder.address],
     });
-    relayer = await deploy('RebalancingRelayer', { args: [vault.address] });
+    relayer = await deploy('Relayer', { args: [vault.address] });
 
     await tokens.mint({ to: sender, amount: fp(100) });
     await tokens.approve({ to: vault, amount: fp(100), from: sender });

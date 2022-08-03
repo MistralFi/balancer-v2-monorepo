@@ -15,16 +15,20 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "@balancer-labs/v2-interfaces/contracts/pool-utils/IAssetManager.sol";
+import "./IAssetManager.sol";
 
-import "@balancer-labs/v2-vault/contracts/test/MockPool.sol";
 
-contract MockAssetManagedPool is MockPool {
-    constructor(IVault vault, IVault.PoolSpecialization specialization) MockPool(vault, specialization) {
-        // solhint-disable-previous-line no-empty-blocks
-    }
+interface IAssetManagerBase is IAssetManager {
 
-    function setAssetManagerPoolConfig(address assetManager, bytes memory poolConfig) public {
-        IAssetManager(assetManager).setConfig(getPoolId(), poolConfig);
-    }
+  struct InvestmentConfig {
+    uint64 targetPercentage;
+    uint64 upperCriticalPercentage;
+    uint64 lowerCriticalPercentage;
+  }
+
+  function initialize(bytes32 poolId) external;
+
+  function getInvestmentConfig(bytes32 pId) external view returns (InvestmentConfig memory);
+
+  function claimRewards() external;
 }

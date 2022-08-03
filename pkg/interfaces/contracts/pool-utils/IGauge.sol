@@ -15,16 +15,14 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "@balancer-labs/v2-interfaces/contracts/pool-utils/IAssetManager.sol";
+interface IGauge {
 
-import "@balancer-labs/v2-vault/contracts/test/MockPool.sol";
+  function getAllRewards(
+    address stakingToken,
+    address account
+  ) external;
 
-contract MockAssetManagedPool is MockPool {
-    constructor(IVault vault, IVault.PoolSpecialization specialization) MockPool(vault, specialization) {
-        // solhint-disable-previous-line no-empty-blocks
-    }
+  function rewardTokensLength(address stakingToken) external view returns (uint);
 
-    function setAssetManagerPoolConfig(address assetManager, bytes memory poolConfig) public {
-        IAssetManager(assetManager).setConfig(getPoolId(), poolConfig);
-    }
+  function rewardTokens(address stakingToken, uint tokenIndex) external view returns (address);
 }
