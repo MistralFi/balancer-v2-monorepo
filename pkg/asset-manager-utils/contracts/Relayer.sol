@@ -18,12 +18,17 @@ pragma experimental ABIEncoderV2;
 import "@balancer-labs/v2-interfaces/contracts/vault/IVault.sol";
 import "@balancer-labs/v2-interfaces/contracts/pool-utils/IAssetManagerBase.sol";
 import "@balancer-labs/v2-interfaces/contracts/pool-utils/IRelayer.sol";
+import "@balancer-labs/v2-interfaces/contracts/solidity-utils/misc/IWETH.sol";
+import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/Address.sol";
+import "@balancer-labs/v2-vault/contracts/AssetHelpers.sol";
 
 /// @title Relayer
 /// @dev this contract behaves as proxy for joinPool and exitPool operations.
 ///      Is able to move invested funds to the Balancer's vault and handle big exitPool requests.
 ///      Need to be approved by Balancer's governance.
-contract Relayer is IRelayer {
+contract Relayer is IRelayer, AssetHelpers {
+    using Address for address payable;
+
     // ***************************************************
     //                CONSTANTS
     // ***************************************************
@@ -51,7 +56,7 @@ contract Relayer is IRelayer {
     //                CONSTRUCTOR
     // ***************************************************
 
-    constructor(IVault _vault) {
+    constructor(IVault _vault) AssetHelpers(_vault.WETH()) {
         vault = _vault;
         _calledPool = _EMPTY_CALLED_POOL;
     }
@@ -63,6 +68,12 @@ contract Relayer is IRelayer {
     /// @dev returns true if relayer processing rebalce request for the given pool (pool Id)
     function hasCalledPool(bytes32 poolId) external view override returns (bool) {
         return _calledPool == poolId;
+    }
+
+    receive() external payable {
+        // Accept ETH transfers only coming from the Vault. This is only expected to happen when joining a pool,
+        // any remaining ETH value will be transferred back to this contract and forwarded back to the original sender.
+        _require(msg.sender == address(vault), Errors.ETH_TRANSFER);
     }
 
     // ***************************************************
@@ -90,8 +101,13 @@ contract Relayer is IRelayer {
         bytes32 poolId,
         address recipient,
         IVault.JoinPoolRequest memory request
-    ) external rebalance(poolId, request.assets, new uint256[](request.assets.length)) {
-        vault.joinPool(poolId, msg.sender, recipient, request);
+    ) external payable rebalance(poolId, request.assets, new uint256[](request.assets.length)) {
+        vault.joinPool{ value: msg.value }(poolId, msg.sender, recipient, request);
+
+        // Send back to the sender any remaining ETH value
+        if (address(this).balance > 0) {
+            msg.sender.sendValue(address(this).balance);
+        }
     }
 
     /// @notice standard Balancer's vault exitPool request with the extra param minCashBalances.
@@ -165,17 +181,5 @@ contract Relayer is IRelayer {
                 IAssetManagerBase(assetManager).rebalance(poolId, false);
             }
         }
-    }
-
-    // ***************************************************
-    //                 COMMON INTERNAL
-    // ***************************************************
-
-    function _translateToIERC20(IAsset[] memory assets) internal pure returns (IERC20[] memory) {
-        IERC20[] memory tokens = new IERC20[](assets.length);
-        for (uint256 i = 0; i < assets.length; ++i) {
-            tokens[i] = IERC20(address(assets[i]));
-        }
-        return tokens;
     }
 }
