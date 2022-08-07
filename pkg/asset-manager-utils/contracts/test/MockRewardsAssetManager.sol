@@ -14,23 +14,19 @@
 
 pragma experimental ABIEncoderV2;
 
-import "../RewardsAssetManager.sol";
+import "../AssetManagerBase.sol";
 
 pragma solidity ^0.7.0;
 
-contract MockRewardsAssetManager is RewardsAssetManager {
+contract MockRewardsAssetManager is AssetManagerBase {
     using Math for uint256;
 
     constructor(
         IVault vault,
-        bytes32 poolId,
+        bytes32 _poolId,
         IERC20 token
-    ) RewardsAssetManager(vault, poolId, token) {
-        // solhint-disable-previous-line no-empty-blocks
-    }
-
-    function initialize(bytes32 pId) public {
-        _initialize(pId);
+    ) AssetManagerBase(vault, token) {
+        poolId = _poolId;
     }
 
     function _invest(uint256 amount, uint256) internal pure override returns (uint256) {
@@ -42,6 +38,8 @@ contract MockRewardsAssetManager is RewardsAssetManager {
     }
 
     function _getAUM() internal view override returns (uint256) {
-        return getToken().balanceOf(address(this));
+        return IERC20(underlying).balanceOf(address(this));
     }
+
+    function _claim() internal override {}
 }
