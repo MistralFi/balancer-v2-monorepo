@@ -29,6 +29,7 @@
     "format:solidity": "../../node_modules/.bin/prettier --write **/*.sol"
   },
   "devDependencies": {
+    "@balancer-labs/v2-asset-manager-utils": "workspace:*",
     "@balancer-labs/balancer-js": "workspace:*",
     "@balancer-labs/v2-common": "workspace:*",
     "@balancer-labs/v2-helpers": "workspace:*",

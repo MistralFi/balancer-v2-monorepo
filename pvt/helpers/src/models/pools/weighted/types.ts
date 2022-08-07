@@ -12,6 +12,7 @@ export enum WeightedPoolType {
   WEIGHTED_POOL = 0,
   LIQUIDITY_BOOTSTRAPPING_POOL,
   MANAGED_POOL,
+  RELAYED_WEIGHTED_POOL = 3,
 }
 
 export type RawWeightedPoolDeployment = {
@@ -214,4 +215,19 @@ export type ManagedPoolParams = {
   managementSwapFeePercentage: BigNumberish;
   managementAumFeePercentage: BigNumberish;
   aumProtocolFeesCollector: string;
+};
+
+export type RelayedWeightedPoolParams = {
+  vault: string;
+  name: string;
+  symbol: string;
+  tokens: string[];
+  normalizedWeights: BigNumberish[];
+  assetManagers: string[];
+  swapFeePercentage: BigNumberish;
+  pauseWindowDuration: BigNumberish;
+  bufferPeriodDuration: BigNumberish;
+  owner: string;
+  relayer: string;
+  swapFeeController: string;
 };

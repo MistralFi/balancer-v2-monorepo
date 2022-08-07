@@ -4,7 +4,6 @@ import * as expectEvent from '../../../test/expectEvent';
 import { deploy, deployedAt } from '../../../contract';
 
 import Vault from '../../vault/Vault';
-import WeightedPool from './WeightedPool';
 import VaultDeployer from '../../vault/VaultDeployer';
 import TypesConverter from '../../types/TypesConverter';
 import {
@@ -12,12 +11,14 @@ import {
   ManagedPoolParams,
   ManagedPoolRights,
   RawWeightedPoolDeployment,
+  RelayedWeightedPoolParams,
   WeightedPoolDeployment,
   WeightedPoolType,
 } from './types';
 import { ZERO_ADDRESS } from '@balancer-labs/v2-helpers/src/constants';
 import { DAY } from '@balancer-labs/v2-helpers/src/time';
 import { fp } from '../../../numbers';
+import WeightedPool from './WeightedPool';
 
 const NAME = 'Balancer Pool Token';
 const SYMBOL = 'BPT';
@@ -31,11 +32,13 @@ export default {
       (await deploy('v2-pool-utils/swapfees/SwapFeeController', {
         args: [vault.address, fp(0.01), fp(0.0001), fp(0.0004), fp(0.0025)],
       }));
+    const relayer = await deploy('v2-asset-manager-utils/Relayer', { args: [vault.address], from: params.from });
 
     const pool = await (params.fromFactory ? this._deployFromFactory : this._deployStandalone)(
       deployment,
       vault,
-      swapFeeController
+      swapFeeController,
+      relayer
     );
     const poolId = await pool.getPoolId();
 
@@ -67,14 +70,16 @@ export default {
       protocolSwapFeePercentage,
       managementSwapFeePercentage,
       managementAumFeePercentage,
-      aumProtocolFeesCollector
+      aumProtocolFeesCollector,
+      relayer
     );
   },
 
   async _deployStandalone(
     params: WeightedPoolDeployment,
     vault: Vault,
-    swapFeeController: Contract
+    swapFeeController: Contract,
+    relayer: Contract
   ): Promise<Contract> {
     const {
       tokens,
@@ -97,6 +102,28 @@ export default {
     let result: Promise<Contract>;
 
     switch (poolType) {
+      case WeightedPoolType.RELAYED_WEIGHTED_POOL: {
+        const newPoolParams: RelayedWeightedPoolParams = {
+          vault: vault.address,
+          name: NAME,
+          symbol: SYMBOL,
+          tokens: tokens.addresses,
+          normalizedWeights: weights,
+          assetManagers: Array(tokens.length).fill(ZERO_ADDRESS),
+          swapFeePercentage: swapFeePercentage,
+          pauseWindowDuration: pauseWindowDuration,
+          bufferPeriodDuration: bufferPeriodDuration,
+          owner: TypesConverter.toAddress(owner),
+          relayer: relayer.address,
+          swapFeeController: swapFeeController.address,
+        };
+
+        result = deploy('v2-pool-weighted/RelayedWeightedPool', {
+          args: [newPoolParams],
+          from,
+        });
+        break;
+      }
       case WeightedPoolType.LIQUIDITY_BOOTSTRAPPING_POOL: {
         result = deploy('v2-pool-weighted/LiquidityBootstrappingPool', {
           args: [
@@ -169,7 +196,8 @@ export default {
   async _deployFromFactory(
     params: WeightedPoolDeployment,
     vault: Vault,
-    swapFeeController: Contract
+    swapFeeController: Contract,
+    relayer: Contract
   ): Promise<Contract> {
     const {
       tokens,
@@ -190,6 +218,29 @@ export default {
     let result: Promise<Contract>;
 
     switch (poolType) {
+      case WeightedPoolType.RELAYED_WEIGHTED_POOL: {
+        //todo add factory.
+        const newPoolParams: RelayedWeightedPoolParams = {
+          vault: vault.address,
+          name: NAME,
+          symbol: SYMBOL,
+          tokens: tokens.addresses,
+          normalizedWeights: weights,
+          assetManagers: Array(tokens.length).fill(ZERO_ADDRESS),
+          swapFeePercentage: swapFeePercentage,
+          pauseWindowDuration: 0,
+          bufferPeriodDuration: 0,
+          owner: TypesConverter.toAddress(owner),
+          relayer: relayer.address,
+          swapFeeController: swapFeeController.address,
+        };
+
+        result = deploy('v2-pool-weighted/RelayedWeightedPool', {
+          args: [newPoolParams],
+          from,
+        });
+        break;
+      }
       case WeightedPoolType.LIQUIDITY_BOOTSTRAPPING_POOL: {
         const factory = await deploy('v2-pool-weighted/LiquidityBootstrappingPoolFactory', {
           args: [vault.address, swapFeeController.address],

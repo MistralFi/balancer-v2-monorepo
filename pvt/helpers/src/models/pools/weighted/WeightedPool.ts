@@ -44,6 +44,7 @@ import {
 import { SwapKind, WeightedPoolEncoder } from '@balancer-labs/balancer-js';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import BasePool from '../base/BasePool';
+import { ethers } from 'hardhat';
 
 const MAX_IN_RATIO = fp(0.3);
 const MAX_OUT_RATIO = fp(0.3);
@@ -60,6 +61,7 @@ export default class WeightedPool extends BasePool {
   managementSwapFeePercentage: BigNumberish;
   managementAumFeePercentage: BigNumberish;
   aumProtocolFeesCollector: string;
+  relayer: Contract;
 
   static async create(params: RawWeightedPoolDeployment = {}): Promise<WeightedPool> {
     return WeightedPoolDeployer.deploy(params);
@@ -80,6 +82,7 @@ export default class WeightedPool extends BasePool {
     managementSwapFeePercentage: BigNumberish,
     managementAumFeePercentage: BigNumberish,
     aumProtocolFeesCollector: string,
+    relayer: Contract,
     owner?: SignerWithAddress
   ) {
     super(instance, poolId, vault, tokens, swapFeePercentage, owner);
@@ -93,6 +96,7 @@ export default class WeightedPool extends BasePool {
     this.managementSwapFeePercentage = managementSwapFeePercentage;
     this.managementAumFeePercentage = managementAumFeePercentage;
     this.aumProtocolFeesCollector = aumProtocolFeesCollector;
+    this.relayer = relayer;
   }
 
   get maxWeight(): BigNumberish {
@@ -314,6 +318,10 @@ export default class WeightedPool extends BasePool {
     return this.join(this._buildJoinGivenInParams(params));
   }
 
+  async joinGivenInRelayer(params: JoinGivenInWeightedPool): Promise<ContractTransaction> {
+    return this.joinRelayer(this._buildJoinGivenInParams(params));
+  }
+
   async queryJoinGivenIn(params: JoinGivenInWeightedPool): Promise<JoinQueryResult> {
     return this.queryJoin(this._buildJoinGivenInParams(params));
   }
@@ -354,6 +362,10 @@ export default class WeightedPool extends BasePool {
     return this.exit(this._buildMultiExitGivenInParams(params));
   }
 
+  async multiExitGivenInRelayer(params: MultiExitGivenInWeightedPool): Promise<ContractTransaction> {
+    return this.exitRelayer(this._buildMultiExitGivenInParams(params));
+  }
+
   async queryMultiExitGivenIn(params: MultiExitGivenInWeightedPool): Promise<ExitQueryResult> {
     return this.queryExit(this._buildMultiExitGivenInParams(params));
   }
@@ -384,6 +396,18 @@ export default class WeightedPool extends BasePool {
     return { amountsIn: deltas, dueProtocolFeeAmounts: protocolFees, receipt };
   }
 
+  async joinRelayer(params: JoinExitWeightedPool): Promise<ContractTransaction> {
+    const to = params.recipient ? TypesConverter.toAddress(params.recipient) : params.from?.address ?? ZERO_ADDRESS;
+    const relayer = params.from ? this.relayer.connect(params.from) : this.relayer;
+
+    return relayer.joinPool(this.poolId, to, {
+      assets: this.tokens.addresses,
+      maxAmountsIn: Array(this.tokens.length).fill(MAX_UINT256),
+      fromInternalBalance: false,
+      userData: params.data ?? '0x',
+    });
+  }
+
   async queryExit(params: JoinExitWeightedPool): Promise<ExitQueryResult> {
     const fn = this.instance.queryExit;
     return (await this._executeQuery(params, fn)) as ExitQueryResult;
@@ -408,6 +432,23 @@ export default class WeightedPool extends BasePool {
     const receipt = await (await tx).wait();
     const { deltas, protocolFees } = expectEvent.inReceipt(receipt, 'PoolBalanceChanged').args;
     return { amountsOut: deltas.map((x: BigNumber) => x.mul(-1)), dueProtocolFeeAmounts: protocolFees, receipt };
+  }
+
+  async exitRelayer(params: JoinExitWeightedPool): Promise<ContractTransaction> {
+    const currentBalances = params.currentBalances || (await this.getBalances());
+    const to = params.recipient ? TypesConverter.toAddress(params.recipient) : params.from?.address ?? ZERO_ADDRESS;
+    const relayer = params.from ? this.relayer.connect(params.from) : this.relayer;
+    return relayer.exitPool(
+      this.poolId,
+      to,
+      {
+        assets: this.tokens.addresses,
+        minAmountsOut: Array(this.tokens.length).fill(0),
+        toInternalBalance: false,
+        userData: params.data ?? '0x',
+      },
+      currentBalances
+    );
   }
 
   private async _executeQuery(params: JoinExitWeightedPool, fn: ContractFunction): Promise<PoolQueryResult> {
@@ -632,5 +673,9 @@ export default class WeightedPool extends BasePool {
   ): Promise<ContractTransaction> {
     const pool = this.instance.connect(from);
     return await pool.removeToken(token, recipient, extra.burnAmount ?? 0, extra.minAmountOut ?? 0);
+  }
+
+  async getRelayer(): Promise<ContractTransaction> {
+    return this.instance.getRelayer();
   }
 }
