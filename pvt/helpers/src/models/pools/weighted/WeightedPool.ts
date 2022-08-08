@@ -44,7 +44,6 @@ import {
 import { SwapKind, WeightedPoolEncoder } from '@balancer-labs/balancer-js';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import BasePool from '../base/BasePool';
-import { ethers } from 'hardhat';
 
 const MAX_IN_RATIO = fp(0.3);
 const MAX_OUT_RATIO = fp(0.3);

@@ -34,7 +34,7 @@ describe('ERC4626AssetManager tests', function () {
     vault: Vault,
     tetuVault: Contract,
     relayer: Contract,
-    rewardsCollector: SignerWithAddress,
+    feeForwarder: Contract,
     gague: Contract,
     assetManager: Contract,
     pool: WeightedPool,
@@ -52,8 +52,10 @@ describe('ERC4626AssetManager tests', function () {
     gagueReturnAmount = bn(100),
     assetManagerImplementation = 'ERC4626AssetManager'
   ) => {
-    //todo rewardsCollector should use feeForwarder?
-    [deployer, user, rewardsCollector, vaultFeeCollector] = await ethers.getSigners();
+    //todo feeForwarder should use feeForwarder?
+    [deployer, user, vaultFeeCollector] = await ethers.getSigners();
+
+    feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
 
     tokens = await TokenList.create(['DAI', 'MKR'], { sorted: true });
     rt = (await TokenList.create(['RT'])).RT;
@@ -74,7 +76,7 @@ describe('ERC4626AssetManager tests', function () {
         vault.address,
         tetuVault.address,
         tokens.DAI.address,
-        rewardsCollector.address,
+        feeForwarder.address,
         isGage ? gague.address : ZERO_ADDRESS,
       ],
     });
@@ -162,7 +164,7 @@ describe('ERC4626AssetManager tests', function () {
 
     it("poolID can't be empty during the initialization", async function () {
       const assetManager = await deploy('ERC4626AssetManager', {
-        args: [vault.address, tetuVault.address, tokens.DAI.address, rewardsCollector.address, gague.address],
+        args: [vault.address, tetuVault.address, tokens.DAI.address, feeForwarder.address, gague.address],
       });
       const nonExistingPoolId = '0x0000000000000000000000000000000000000000000000000000000000000000';
       await expect(assetManager.initialize(nonExistingPoolId)).is.revertedWith('Pool id cannot be empty');
@@ -171,7 +173,7 @@ describe('ERC4626AssetManager tests', function () {
     it("underlying can't be empty during the initialization", async function () {
       await expect(
         deploy('ERC4626AssetManager', {
-          args: [vault.address, tetuVault.address, ZERO_ADDRESS, rewardsCollector.address, gague.address],
+          args: [vault.address, tetuVault.address, ZERO_ADDRESS, feeForwarder.address, gague.address],
         })
       ).is.revertedWith('zero token');
     });
@@ -179,7 +181,7 @@ describe('ERC4626AssetManager tests', function () {
     it("Balancer vault can't be empty during the initialization", async function () {
       await expect(
         deploy('ERC4626AssetManager', {
-          args: [ZERO_ADDRESS, tetuVault.address, tokens.DAI.address, rewardsCollector.address, gague.address],
+          args: [ZERO_ADDRESS, tetuVault.address, tokens.DAI.address, feeForwarder.address, gague.address],
         })
       ).is.revertedWith('zero balancer vault');
     });
@@ -187,7 +189,7 @@ describe('ERC4626AssetManager tests', function () {
     it("Tetu vault can't be empty during the initialization", async function () {
       await expect(
         deploy('ERC4626AssetManager', {
-          args: [vault.address, ZERO_ADDRESS, tokens.DAI.address, rewardsCollector.address, gague.address],
+          args: [vault.address, ZERO_ADDRESS, tokens.DAI.address, feeForwarder.address, gague.address],
         })
       ).is.revertedWith('zero ERC4626 vault');
     });
@@ -197,7 +199,7 @@ describe('ERC4626AssetManager tests', function () {
         deploy('ERC4626AssetManager', {
           args: [vault.address, tetuVault.address, tokens.DAI.address, ZERO_ADDRESS, gague.address],
         })
-      ).is.revertedWith('zero rewardCollector');
+      ).is.revertedWith('zero feeForwarder');
     });
 
     it('AM should not invest in tetu vault if vault not returns receipt tokens', async function () {
@@ -407,9 +409,9 @@ describe('ERC4626AssetManager tests', function () {
     it('Relayer should be able to claim rewards', async function () {
       // simulate rewards
       await rt.mint(gague.address, bn(150));
-      const feeCollectorBalBefore = await rt.balanceOf(rewardsCollector.address);
+      const feeCollectorBalBefore = await rt.balanceOf(feeForwarder.address);
       await relayer.claimAssetManagerRewards(poolId);
-      const feeCollectorBalAfter = await rt.balanceOf(rewardsCollector.address);
+      const feeCollectorBalAfter = await rt.balanceOf(feeForwarder.address);
       expect(feeCollectorBalAfter).is.gt(feeCollectorBalBefore);
       expect(feeCollectorBalAfter).is.eq(bn(100));
     });
@@ -417,17 +419,17 @@ describe('ERC4626AssetManager tests', function () {
     it('Relayer should process claim transaction with empty gague', async function () {
       await setup(true, true, false);
       await rt.mint(gague.address, bn(150));
-      const feeCollectorBalBefore = await rt.balanceOf(rewardsCollector.address);
+      const feeCollectorBalBefore = await rt.balanceOf(feeForwarder.address);
       await relayer.claimAssetManagerRewards(poolId);
-      const feeCollectorBalAfter = await rt.balanceOf(rewardsCollector.address);
+      const feeCollectorBalAfter = await rt.balanceOf(feeForwarder.address);
       expect(feeCollectorBalAfter).is.eq(feeCollectorBalBefore);
     });
 
     it('Relayer should process claim transaction when no gague rewards', async function () {
       await setup(true, true, true, bn(0));
-      const feeCollectorBalBefore = await rt.balanceOf(rewardsCollector.address);
+      const feeCollectorBalBefore = await rt.balanceOf(feeForwarder.address);
       await relayer.claimAssetManagerRewards(poolId);
-      const feeCollectorBalAfter = await rt.balanceOf(rewardsCollector.address);
+      const feeCollectorBalAfter = await rt.balanceOf(feeForwarder.address);
       expect(feeCollectorBalAfter).is.eq(feeCollectorBalBefore);
     });
   });

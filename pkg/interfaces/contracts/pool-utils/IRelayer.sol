@@ -16,9 +16,6 @@ pragma solidity ^0.7.0;
 
 import "./IBasePoolRelayer.sol";
 
-
 interface IRelayer is IBasePoolRelayer {
-
-  function claimAssetManagerRewards(bytes32 poolId) external;
-
+    function claimAssetManagerRewards(bytes32 poolId) external;
 }

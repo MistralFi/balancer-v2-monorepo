@@ -17,18 +17,16 @@ pragma experimental ABIEncoderV2;
 
 import "./IAssetManager.sol";
 
-
 interface IAssetManagerBase is IAssetManager {
+    struct InvestmentConfig {
+        uint64 targetPercentage;
+        uint64 upperCriticalPercentage;
+        uint64 lowerCriticalPercentage;
+    }
 
-  struct InvestmentConfig {
-    uint64 targetPercentage;
-    uint64 upperCriticalPercentage;
-    uint64 lowerCriticalPercentage;
-  }
+    function initialize(bytes32 poolId) external;
 
-  function initialize(bytes32 poolId) external;
+    function getInvestmentConfig(bytes32 pId) external view returns (InvestmentConfig memory);
 
-  function getInvestmentConfig(bytes32 pId) external view returns (InvestmentConfig memory);
-
-  function claimRewards() external;
+    function claimRewards() external;
 }
