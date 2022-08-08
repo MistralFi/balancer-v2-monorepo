@@ -353,6 +353,10 @@ export default class WeightedPool extends BasePool {
     return this.exit(this._buildExitGivenOutParams(params));
   }
 
+  async exitGivenOutRelayer(params: ExitGivenOutWeightedPool): Promise<ContractTransaction> {
+    return this.exitRelayer(this._buildExitGivenOutParams(params));
+  }
+
   async queryExitGivenOut(params: ExitGivenOutWeightedPool): Promise<ExitQueryResult> {
     return this.queryExit(this._buildExitGivenOutParams(params));
   }
@@ -684,5 +688,9 @@ export default class WeightedPool extends BasePool {
 
   async getRelayer(): Promise<ContractTransaction> {
     return this.instance.getRelayer();
+  }
+
+  async setAssetManagerPoolConfig(token: Token, config: string): Promise<ContractTransaction> {
+    return this.instance.setAssetManagerPoolConfig(token.address, config);
   }
 }

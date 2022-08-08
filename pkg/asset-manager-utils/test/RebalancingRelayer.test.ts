@@ -189,7 +189,7 @@ describe('RebalancingRelayer', function () {
 
           it('reverts', async () => {
             await expect(relayer.connect(sender).joinPool(poolId, recipient.address, request)).to.be.revertedWith(
-              'USER_DOESNT_ALLOW_RELAYER'
+              'BAL#503'
             );
           });
         });
@@ -202,7 +202,7 @@ describe('RebalancingRelayer', function () {
 
           it('reverts', async () => {
             await expect(relayer.connect(sender).joinPool(poolId, recipient.address, request)).to.be.revertedWith(
-              'SENDER_NOT_ALLOWED'
+              'BAL#401'
             );
           });
         });
@@ -213,7 +213,7 @@ describe('RebalancingRelayer', function () {
       it('reverts', async () => {
         await expect(
           vault.connect(sender).joinPool(poolId, sender.address, recipient.address, request)
-        ).to.be.revertedWith('BASE_POOL_RELAYER_NOT_CALLED');
+        ).to.be.revertedWith('BAL#324');
       });
     });
   });
@@ -355,7 +355,7 @@ describe('RebalancingRelayer', function () {
                 exitRequest,
                 tokens.map(() => 0)
               )
-            ).to.be.revertedWith('USER_DOESNT_ALLOW_RELAYER');
+            ).to.be.revertedWith('BAL#503');
           });
         });
 
@@ -373,7 +373,7 @@ describe('RebalancingRelayer', function () {
                 exitRequest,
                 tokens.map(() => 0)
               )
-            ).to.be.revertedWith('SENDER_NOT_ALLOWED');
+            ).to.be.revertedWith('BAL#401');
           });
         });
       });
@@ -383,7 +383,7 @@ describe('RebalancingRelayer', function () {
       it('reverts', async () => {
         await expect(
           vault.connect(sender).exitPool(poolId, sender.address, sender.address, exitRequest)
-        ).to.be.revertedWith('BASE_POOL_RELAYER_NOT_CALLED');
+        ).to.be.revertedWith('BAL#324');
       });
     });
   });

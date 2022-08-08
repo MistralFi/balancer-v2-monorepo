@@ -72,6 +72,10 @@ export default class TokenList {
     return this.findBySymbol('GRT');
   }
 
+  get RT(): Token {
+    return this.findBySymbol('RT');
+  }
+
   get(index: number | Token): Token {
     if (typeof index !== 'number') return index;
     if (index >= this.length) throw Error('Accessing invalid token list index');
