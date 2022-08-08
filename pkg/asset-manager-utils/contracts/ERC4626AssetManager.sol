@@ -18,6 +18,7 @@ pragma experimental ABIEncoderV2;
 import "@balancer-labs/v2-interfaces/contracts/vault/IVault.sol";
 import "@balancer-labs/v2-interfaces/contracts/pool-utils/IGauge.sol";
 import "@balancer-labs/v2-interfaces/contracts/pool-utils/IERC4626.sol";
+import "@balancer-labs/v2-interfaces/contracts/vault/IForwarder.sol";
 import "./AssetManagerBase.sol";
 
 /// @title ERC4626AssetManager
@@ -34,7 +35,7 @@ contract ERC4626AssetManager is AssetManagerBase {
     address public immutable erc4626Vault;
 
     /// @notice rewards from gauge are transferred to this address
-    address public immutable rewardCollector;
+    IForwarder public immutable feeForwarder;
     IGauge public immutable gauge;
 
     // ***************************************************
@@ -53,13 +54,13 @@ contract ERC4626AssetManager is AssetManagerBase {
         IVault balancerVault_,
         address erc4626Vault_,
         address underlying_,
-        address rewardCollector_,
+        IForwarder feeForwarder_,
         address gauge_
     ) AssetManagerBase(balancerVault_, IERC20(underlying_)) {
         require(erc4626Vault_ != address(0), "zero ERC4626 vault");
-        require(rewardCollector_ != address(0), "zero rewardCollector");
+        require(address(feeForwarder_) != address(0), "zero feeForwarder");
         erc4626Vault = erc4626Vault_;
-        rewardCollector = rewardCollector_;
+        feeForwarder = feeForwarder_;
         gauge = IGauge(gauge_);
 
         IERC20(underlying_).approve(erc4626Vault_, type(uint256).max);
@@ -118,19 +119,21 @@ contract ERC4626AssetManager is AssetManagerBase {
         return 0;
     }
 
-    /// @dev Claim all rewards from given gague and send to rewardCollector
+    /// @dev Claim all rewards from given gague and send to feeForwarder
     function _claim() internal override {
-        if (address(gauge) != address(0) && rewardCollector != address(0)) {
+        if (address(gauge) != address(0) && address(feeForwarder) != address(0)) {
             gauge.getAllRewards(address(erc4626Vault), address(this));
-            for (uint256 i = 0; i < gauge.rewardTokensLength(address(erc4626Vault)); i++) {
+            uint256 rtLength = gauge.rewardTokensLength(address(erc4626Vault));
+            address[] memory tokens = new address[](rtLength);
+
+            for (uint256 i = 0; i < rtLength; i++) {
                 IERC20 rt = IERC20(gauge.rewardTokens(address(erc4626Vault), i));
                 uint256 bal = IERC20(rt).balanceOf(address(this));
-                if (bal > 0) {
-                    //todo use feeForwarder instead(?)
-                    rt.safeTransfer(rewardCollector, bal);
-                    emit RewardClaimed(address(rt), bal);
-                }
+                rt.safeTransfer(address(feeForwarder), bal);
+                tokens[i] = address(rt);
+                emit RewardClaimed(address(rt), bal);
             }
+            feeForwarder.registerIncome(tokens, getPoolAddress());
         }
     }
 }

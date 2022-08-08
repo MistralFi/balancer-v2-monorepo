@@ -119,15 +119,7 @@ contract MockRelayedBasePool is RelayedBasePool {
         uint256,
         uint256[] memory,
         bytes memory
-    )
-        internal
-        view
-        override
-        returns (
-            uint256,
-            uint256[] memory
-        )
-    {
+    ) internal view override returns (uint256, uint256[] memory) {
         return (_MINIMUM_BPT * 2, _ones());
     }
 
@@ -140,15 +132,7 @@ contract MockRelayedBasePool is RelayedBasePool {
         uint256,
         uint256[] memory,
         bytes memory
-    )
-        internal
-        view
-        override
-        returns (
-            uint256,
-            uint256[] memory
-        )
-    {
+    ) internal view override returns (uint256, uint256[] memory) {
         return (_MINIMUM_BPT, _ones());
     }
 

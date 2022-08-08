@@ -25,10 +25,10 @@ contract Mock4626VaultV2 is IERC4626, ERC20 {
     using SafeERC20 for IERC20;
 
     IERC20 public asset;
-    bool isReturnTokens;
-    bool isReturnShares;
-    uint256 constant feeDen = 100;
-    uint256 feeNom = 0;
+    bool public isReturnTokens;
+    bool public isReturnShares;
+    uint256 public constant feeDen = 100;
+    uint256 public feeNom = 0;
     address public vaultFeeCollector;
 
     constructor(

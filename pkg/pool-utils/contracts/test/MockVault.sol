@@ -47,7 +47,11 @@ contract MockVault is IPoolSwapStructs {
         uint256[] protocolFees
     );
 
-    constructor(IAuthorizer authorizer, address feeForwarder, IWETH weth) {
+    constructor(
+        IAuthorizer authorizer,
+        address feeForwarder,
+        IWETH weth
+    ) {
         _authorizer = authorizer;
         _weth = weth;
         _feeForwarder = feeForwarder;

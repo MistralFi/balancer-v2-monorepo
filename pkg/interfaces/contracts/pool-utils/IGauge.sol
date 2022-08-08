@@ -16,13 +16,9 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 interface IGauge {
+    function getAllRewards(address stakingToken, address account) external;
 
-  function getAllRewards(
-    address stakingToken,
-    address account
-  ) external;
+    function rewardTokensLength(address stakingToken) external view returns (uint256);
 
-  function rewardTokensLength(address stakingToken) external view returns (uint);
-
-  function rewardTokens(address stakingToken, uint tokenIndex) external view returns (address);
+    function rewardTokens(address stakingToken, uint256 tokenIndex) external view returns (address);
 }
