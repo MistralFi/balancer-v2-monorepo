@@ -19,6 +19,7 @@ import "@balancer-labs/v2-pool-utils/contracts/factories/BasePoolSplitCodeFactor
 import "@balancer-labs/v2-pool-utils/contracts/factories/FactoryWidePauseWindow.sol";
 
 import "@balancer-labs/v2-standalone-utils/contracts/AumProtocolFeesCollector.sol";
+import "@balancer-labs/v2-interfaces/contracts/vault/ISwapFeeController.sol";
 
 import "./ManagedPool.sol";
 
@@ -33,9 +34,13 @@ import "./ManagedPool.sol";
  */
 contract BaseManagedPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
     AumProtocolFeesCollector private immutable _aumProtocolFeesCollector;
+    ISwapFeeController public immutable swapFeeController;
 
-    constructor(IVault vault) BasePoolSplitCodeFactory(vault, type(ManagedPool).creationCode) {
+    constructor(IVault vault, ISwapFeeController _swapFeeController)
+        BasePoolSplitCodeFactory(vault, type(ManagedPool).creationCode)
+    {
         _aumProtocolFeesCollector = new AumProtocolFeesCollector(vault);
+        swapFeeController = _swapFeeController;
     }
 
     /**
@@ -72,7 +77,8 @@ contract BaseManagedPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWin
                     getVault(),
                     owner,
                     pauseWindowDuration,
-                    bufferPeriodDuration
+                    bufferPeriodDuration,
+                    swapFeeController
                 )
             );
     }

@@ -17,6 +17,7 @@ import {
 } from './types';
 import { ZERO_ADDRESS } from '@balancer-labs/v2-helpers/src/constants';
 import { DAY } from '@balancer-labs/v2-helpers/src/time';
+import { fp } from '../../../numbers';
 
 const NAME = 'Balancer Pool Token';
 const SYMBOL = 'BPT';
@@ -25,7 +26,17 @@ export default {
   async deploy(params: RawWeightedPoolDeployment): Promise<WeightedPool> {
     const deployment = TypesConverter.toWeightedPoolDeployment(params);
     const vault = params?.vault ?? (await VaultDeployer.deploy(TypesConverter.toRawVaultDeployment(params)));
-    const pool = await (params.fromFactory ? this._deployFromFactory : this._deployStandalone)(deployment, vault);
+    const swapFeeController =
+      params?.swapFeeController ??
+      (await deploy('v2-pool-utils/swapfees/SwapFeeController', {
+        args: [vault.address, fp(0.01), fp(0.0001), fp(0.0004), fp(0.0025)],
+      }));
+
+    const pool = await (params.fromFactory ? this._deployFromFactory : this._deployStandalone)(
+      deployment,
+      vault,
+      swapFeeController
+    );
     const poolId = await pool.getPoolId();
 
     const {
@@ -60,7 +71,11 @@ export default {
     );
   },
 
-  async _deployStandalone(params: WeightedPoolDeployment, vault: Vault): Promise<Contract> {
+  async _deployStandalone(
+    params: WeightedPoolDeployment,
+    vault: Vault,
+    swapFeeController: Contract
+  ): Promise<Contract> {
     const {
       tokens,
       weights,
@@ -95,6 +110,7 @@ export default {
             bufferPeriodDuration,
             TypesConverter.toAddress(owner),
             swapEnabledOnStart,
+            swapFeeController.address,
           ],
           from,
         });
@@ -121,6 +137,7 @@ export default {
             owner,
             pauseWindowDuration,
             bufferPeriodDuration,
+            swapFeeController.address,
           ],
           from,
         });
@@ -139,6 +156,7 @@ export default {
             pauseWindowDuration,
             bufferPeriodDuration,
             owner,
+            swapFeeController.address,
           ],
           from,
         });
@@ -148,7 +166,11 @@ export default {
     return result;
   },
 
-  async _deployFromFactory(params: WeightedPoolDeployment, vault: Vault): Promise<Contract> {
+  async _deployFromFactory(
+    params: WeightedPoolDeployment,
+    vault: Vault,
+    swapFeeController: Contract
+  ): Promise<Contract> {
     const {
       tokens,
       weights,
@@ -170,7 +192,7 @@ export default {
     switch (poolType) {
       case WeightedPoolType.LIQUIDITY_BOOTSTRAPPING_POOL: {
         const factory = await deploy('v2-pool-weighted/LiquidityBootstrappingPoolFactory', {
-          args: [vault.address],
+          args: [vault.address, swapFeeController.address],
           from,
         });
         const tx = await factory.create(
@@ -189,7 +211,7 @@ export default {
       }
       case WeightedPoolType.MANAGED_POOL: {
         const baseFactory = await deploy('v2-pool-weighted/BaseManagedPoolFactory', {
-          args: [vault.address],
+          args: [vault.address, swapFeeController.address],
           from,
         });
 
@@ -237,7 +259,10 @@ export default {
         break;
       }
       default: {
-        const factory = await deploy('v2-pool-weighted/WeightedPoolFactory', { args: [vault.address], from });
+        const factory = await deploy('v2-pool-weighted/WeightedPoolFactory', {
+          args: [vault.address, swapFeeController.address],
+          from,
+        });
         const tx = await factory.create(
           NAME,
           SYMBOL,

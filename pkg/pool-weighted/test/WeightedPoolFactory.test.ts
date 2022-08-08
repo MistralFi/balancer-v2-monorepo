@@ -17,6 +17,7 @@ describe('WeightedPoolFactory', function () {
   let tokens: TokenList;
   let factory: Contract;
   let vault: Vault;
+  let swapFeeController: Contract;
   let assetManagers: string[];
   let assetManager: SignerWithAddress, owner: SignerWithAddress;
 
@@ -36,8 +37,10 @@ describe('WeightedPoolFactory', function () {
 
   sharedBeforeEach('deploy factory & tokens', async () => {
     vault = await Vault.create();
-
-    factory = await deploy('WeightedPoolFactory', { args: [vault.address] });
+    swapFeeController = await deploy('v2-pool-utils/swapfees/SwapFeeController', {
+      args: [vault.address, fp(0.01), fp(0.0001), fp(0.0004), fp(0.0025)],
+    });
+    factory = await deploy('WeightedPoolFactory', { args: [vault.address, swapFeeController.address] });
     createTime = await currentTimestamp();
 
     tokens = await TokenList.create(['MKR', 'DAI', 'SNX', 'BAT'], { sorted: true });
@@ -72,6 +75,10 @@ describe('WeightedPoolFactory', function () {
 
     it('sets the vault', async () => {
       expect(await pool.getVault()).to.equal(vault.address);
+    });
+
+    it('sets the swapFeeController', async () => {
+      expect(await pool.getSwapFeeController()).to.equal(swapFeeController.address);
     });
 
     it('registers tokens in the vault', async () => {

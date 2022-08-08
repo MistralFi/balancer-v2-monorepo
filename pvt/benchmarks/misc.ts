@@ -22,6 +22,7 @@ const symbol = 'BPT';
 
 export async function setupEnvironment(): Promise<{
   vault: Vault;
+  swapFeeController: Contract;
   tokens: TokenList;
   trader: SignerWithAddress;
   others: SignerWithAddress[];
@@ -29,6 +30,10 @@ export async function setupEnvironment(): Promise<{
   const { admin, creator, trader, others } = await getSigners();
 
   const vault = await Vault.create({ admin });
+
+  const swapFeeController = await deploy('v2-pool-utils/swapfees/SwapFeeController', {
+    args: [vault.address, fp(0.01), fp(0.0001), fp(0.0004), fp(0.0025)],
+  });
 
   const tokens = await TokenList.create(
     Array.from({ length: MAX_WEIGHTED_TOKENS }).map((_, i) => `TKN${i}`),
@@ -55,10 +60,15 @@ export async function setupEnvironment(): Promise<{
 
   await vault.instance.connect(trader).manageUserBalance(transfers);
 
-  return { vault, tokens, trader, others };
+  return { vault, swapFeeController, tokens, trader, others };
 }
 
-export async function deployPool(vault: Vault, tokens: TokenList, poolName: PoolName): Promise<string> {
+export async function deployPool(
+  vault: Vault,
+  swapFeeController: Contract,
+  tokens: TokenList,
+  poolName: PoolName
+): Promise<string> {
   const { creator } = await getSigners();
 
   const initialPoolBalance = bn(100e18);
@@ -66,7 +76,7 @@ export async function deployPool(vault: Vault, tokens: TokenList, poolName: Pool
     await token.mint(creator, initialPoolBalance);
   });
 
-  const swapFeePercentage = fp(0.02); // 2%
+  const swapFeePercentage = fp(0.01); // 1%
   const managementFee = fp(0.5); // 50%
   const aumFee = 0;
 
@@ -123,7 +133,7 @@ export async function deployPool(vault: Vault, tokens: TokenList, poolName: Pool
       }
     }
 
-    pool = await deployPoolFromFactory(vault, poolName, {
+    pool = await deployPoolFromFactory(vault, swapFeeController, poolName, {
       from: creator,
       parameters: params,
     });
@@ -136,7 +146,7 @@ export async function deployPool(vault: Vault, tokens: TokenList, poolName: Pool
     const cacheDurations = Array(tokens.length).fill(0);
     const protocolFeeFlags = Array(tokens.length).fill(false);
 
-    pool = await deployPoolFromFactory(vault, poolName, {
+    pool = await deployPoolFromFactory(vault, swapFeeController, poolName, {
       from: creator,
       parameters: [
         tokens.addresses,
@@ -169,14 +179,26 @@ export async function deployPool(vault: Vault, tokens: TokenList, poolName: Pool
   return poolId;
 }
 
-export async function getWeightedPool(vault: Vault, tokens: TokenList, size: number, offset = 0): Promise<string> {
+export async function getWeightedPool(
+  vault: Vault,
+  swapFeeController: Contract,
+  tokens: TokenList,
+  size: number,
+  offset = 0
+): Promise<string> {
   return size > 20
-    ? deployPool(vault, tokens.subset(size, offset), 'ManagedPool')
-    : deployPool(vault, tokens.subset(size, offset), 'WeightedPool');
+    ? deployPool(vault, swapFeeController, tokens.subset(size, offset), 'ManagedPool')
+    : deployPool(vault, swapFeeController, tokens.subset(size, offset), 'WeightedPool');
 }
 
-export async function getStablePool(vault: Vault, tokens: TokenList, size: number, offset?: number): Promise<string> {
-  return deployPool(vault, tokens.subset(size, offset), 'StablePhantomPool');
+export async function getStablePool(
+  vault: Vault,
+  swapFeeController: Contract,
+  tokens: TokenList,
+  size: number,
+  offset?: number
+): Promise<string> {
+  return deployPool(vault, swapFeeController, tokens.subset(size, offset), 'StablePhantomPool');
 }
 
 export function pickTokenAddresses(tokens: TokenList, size: number, offset?: number): string[] {
@@ -198,16 +220,21 @@ type PoolName = 'WeightedPool' | 'StablePhantomPool' | 'ManagedPool';
 
 async function deployPoolFromFactory(
   vault: Vault,
+  swapFeeController: Contract,
   poolName: PoolName,
   args: { from: SignerWithAddress; parameters: Array<unknown> }
 ): Promise<Contract> {
   const fullName = `${poolName == 'StablePhantomPool' ? 'v2-pool-stable-phantom' : 'v2-pool-weighted'}/${poolName}`;
   let factory: Contract;
   if (poolName == 'ManagedPool') {
-    const baseFactory = await deploy('v2-pool-weighted/BaseManagedPoolFactory', { args: [vault.address] });
+    const baseFactory = await deploy('v2-pool-weighted/BaseManagedPoolFactory', {
+      args: [vault.address, swapFeeController.address],
+    });
     factory = await deploy(`${fullName}Factory`, { args: [baseFactory.address] });
-  } else {
+  } else if (poolName == 'StablePhantomPool') {
     factory = await deploy(`${fullName}Factory`, { args: [vault.address] });
+  } else {
+    factory = await deploy(`${fullName}Factory`, { args: [vault.address, swapFeeController.address] });
   }
 
   // We could reuse this factory if we saved it across pool deployments

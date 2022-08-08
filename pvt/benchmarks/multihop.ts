@@ -7,47 +7,49 @@ import { getWeightedPool, getStablePool, setupEnvironment } from './misc';
 import { fp, printGas } from '@balancer-labs/v2-helpers/src/numbers';
 import Vault from '@balancer-labs/v2-helpers/src/models/vault/Vault';
 import TokenList from '@balancer-labs/v2-helpers/src/models/tokens/TokenList';
+import { Contract } from 'ethers';
 
 let vault: Vault;
+let swapFeeController: Contract;
 let tokens: TokenList;
 let trader: SignerWithAddress;
 
 const MAX_HOPS = 3;
 
 async function main() {
-  ({ vault, tokens, trader } = await setupEnvironment());
+  ({ vault, swapFeeController, tokens, trader } = await setupEnvironment());
 
   console.log('== One token in for one token out, multiple hops ==');
 
   console.log(`\n# Weighted Pool with 2 tokens`);
 
-  await multihop((index: number) => getWeightedPool(vault, tokens, 2, index), false);
-  await multihop((index: number) => getWeightedPool(vault, tokens, 2, index), true);
+  await multihop((index: number) => getWeightedPool(vault, swapFeeController, tokens, 2, index), false);
+  await multihop((index: number) => getWeightedPool(vault, swapFeeController, tokens, 2, index), true);
 
   console.log(`\n# Weighted Pool with 4 tokens`);
 
-  await multihop((index: number) => getWeightedPool(vault, tokens, 4, index), false);
-  await multihop((index: number) => getWeightedPool(vault, tokens, 4, index), true);
+  await multihop((index: number) => getWeightedPool(vault, swapFeeController, tokens, 4, index), false);
+  await multihop((index: number) => getWeightedPool(vault, swapFeeController, tokens, 4, index), true);
 
   console.log(`\n# Weighted Pool with 20 tokens`);
 
-  await multihop((index: number) => getWeightedPool(vault, tokens, 20, index), false);
-  await multihop((index: number) => getWeightedPool(vault, tokens, 20, index), true);
+  await multihop((index: number) => getWeightedPool(vault, swapFeeController, tokens, 20, index), false);
+  await multihop((index: number) => getWeightedPool(vault, swapFeeController, tokens, 20, index), true);
 
   console.log(`\n# Managed Pool with 38 tokens`);
 
-  await multihop((index: number) => getWeightedPool(vault, tokens, 38, index), false);
-  await multihop((index: number) => getWeightedPool(vault, tokens, 38, index), true);
+  await multihop((index: number) => getWeightedPool(vault, swapFeeController, tokens, 38, index), false);
+  await multihop((index: number) => getWeightedPool(vault, swapFeeController, tokens, 38, index), true);
 
   console.log(`\n# Stable Pool with 2 tokens`);
 
-  await multihop((index: number) => getStablePool(vault, tokens, 2, index), false);
-  await multihop((index: number) => getStablePool(vault, tokens, 2, index), true);
+  await multihop((index: number) => getStablePool(vault, swapFeeController, tokens, 2, index), false);
+  await multihop((index: number) => getStablePool(vault, swapFeeController, tokens, 2, index), true);
 
   console.log(`\n# Stable Pool with 4 tokens`);
 
-  await multihop((index: number) => getStablePool(vault, tokens, 4, index), false);
-  await multihop((index: number) => getStablePool(vault, tokens, 4, index), true);
+  await multihop((index: number) => getStablePool(vault, swapFeeController, tokens, 4, index), false);
+  await multihop((index: number) => getStablePool(vault, swapFeeController, tokens, 4, index), true);
 }
 
 async function multihop(getPool: (index: number) => Promise<string>, useInternalBalance: boolean) {

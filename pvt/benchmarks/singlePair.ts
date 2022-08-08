@@ -7,8 +7,10 @@ import Vault from '@balancer-labs/v2-helpers/src/models/vault/Vault';
 import { getTokensSwaps } from '@balancer-labs/v2-helpers/src/models/vault/swaps';
 import { getWeightedPool, getStablePool, setupEnvironment } from './misc';
 import { FundManagement, SwapKind } from '@balancer-labs/balancer-js';
+import { Contract } from 'ethers';
 
 let vault: Vault;
+let swapFeeController: Contract;
 let tokens: TokenList;
 
 let trader: SignerWithAddress;
@@ -16,39 +18,39 @@ let trader: SignerWithAddress;
 const MAX_POOLS = 3;
 
 async function main() {
-  ({ vault, tokens, trader } = await setupEnvironment());
+  ({ vault, swapFeeController, tokens, trader } = await setupEnvironment());
 
   console.log('== Single token pair in multiple pools ==');
 
   console.log(`\n# Weighted Pools with 2 tokens`);
 
-  await singlePair(() => getWeightedPool(vault, tokens, 2), false);
-  await singlePair(() => getWeightedPool(vault, tokens, 2), true);
+  await singlePair(() => getWeightedPool(vault, swapFeeController, tokens, 2), false);
+  await singlePair(() => getWeightedPool(vault, swapFeeController, tokens, 2), true);
 
   console.log(`\n# Weighted Pools with 4 tokens`);
 
-  await singlePair(() => getWeightedPool(vault, tokens, 4), false);
-  await singlePair(() => getWeightedPool(vault, tokens, 4), true);
+  await singlePair(() => getWeightedPool(vault, swapFeeController, tokens, 4), false);
+  await singlePair(() => getWeightedPool(vault, swapFeeController, tokens, 4), true);
 
   console.log(`\n# Weighted Pools with 20 tokens`);
 
-  await singlePair(() => getWeightedPool(vault, tokens, 20), false);
-  await singlePair(() => getWeightedPool(vault, tokens, 20), true);
+  await singlePair(() => getWeightedPool(vault, swapFeeController, tokens, 20), false);
+  await singlePair(() => getWeightedPool(vault, swapFeeController, tokens, 20), true);
 
   console.log(`\n# Managed Pools with 38 tokens`);
 
-  await singlePair(() => getWeightedPool(vault, tokens, 38), false);
-  await singlePair(() => getWeightedPool(vault, tokens, 38), true);
+  await singlePair(() => getWeightedPool(vault, swapFeeController, tokens, 38), false);
+  await singlePair(() => getWeightedPool(vault, swapFeeController, tokens, 38), true);
 
   console.log(`\n# Stable Pools with 2 tokens`);
 
-  await singlePair(() => getStablePool(vault, tokens, 2), false);
-  await singlePair(() => getStablePool(vault, tokens, 2), true);
+  await singlePair(() => getStablePool(vault, swapFeeController, tokens, 2), false);
+  await singlePair(() => getStablePool(vault, swapFeeController, tokens, 2), true);
 
   console.log(`\n# Stable Pools with 4 tokens`);
 
-  await singlePair(() => getStablePool(vault, tokens, 4), false);
-  await singlePair(() => getStablePool(vault, tokens, 4), true);
+  await singlePair(() => getStablePool(vault, swapFeeController, tokens, 4), false);
+  await singlePair(() => getStablePool(vault, swapFeeController, tokens, 4), true);
 }
 
 async function singlePair(getPoolId: () => Promise<string>, useInternalBalance: boolean) {
