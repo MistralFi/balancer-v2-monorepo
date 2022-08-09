@@ -119,7 +119,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@balancer-labs/v2-asset-manager-utils@workspace:pkg/asset-manager-utils":
+"@balancer-labs/v2-asset-manager-utils@workspace:*, @balancer-labs/v2-asset-manager-utils@workspace:pkg/asset-manager-utils":
   version: 0.0.0-use.local
   resolution: "@balancer-labs/v2-asset-manager-utils@workspace:pkg/asset-manager-utils"
   dependencies:
@@ -537,6 +537,7 @@ __metadata:
   resolution: "@balancer-labs/v2-pool-weighted@workspace:pkg/pool-weighted"
   dependencies:
     "@balancer-labs/balancer-js": "workspace:*"
+    "@balancer-labs/v2-asset-manager-utils": "workspace:*"
     "@balancer-labs/v2-common": "workspace:*"
     "@balancer-labs/v2-helpers": "workspace:*"
     "@balancer-labs/v2-interfaces": "workspace:*"
