@@ -20,7 +20,7 @@ import { PoolSpecialization, RelayerAuthorization } from '@balancer-labs/balance
 
 describe('Join Pool', () => {
   let admin: SignerWithAddress, creator: SignerWithAddress, lp: SignerWithAddress, relayer: SignerWithAddress;
-  let authorizer: Contract, vault: Contract, feesCollector: Contract;
+  let authorizer: Contract, vault: Contract, feesCollector: Contract, feeForwarder: Contract;
   let allTokens: TokenList;
 
   before(async () => {
@@ -31,7 +31,9 @@ describe('Join Pool', () => {
     const WETH = await TokensDeployer.deployToken({ symbol: 'WETH' });
 
     authorizer = await deploy('TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
-    vault = await deploy('Vault', { args: [authorizer.address, WETH.address, MONTH, MONTH] });
+    feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
+
+    vault = await deploy('Vault', { args: [authorizer.address, WETH.address, MONTH, MONTH, feeForwarder.address] });
     feesCollector = await deployedAt('ProtocolFeesCollector', await vault.getProtocolFeesCollector());
 
     const action = await actionId(feesCollector, 'setSwapFeePercentage');
@@ -436,7 +438,7 @@ describe('Join Pool', () => {
             [
               { account: lp, changes: lpChanges },
               { account: vault, changes: vaultChanges },
-              { account: feesCollector, changes: protocolFeesChanges },
+              { account: feeForwarder, changes: protocolFeesChanges },
             ]
           );
         });
@@ -508,11 +510,16 @@ describe('Join Pool', () => {
         });
 
         it('collects protocol fees', async () => {
-          const previousCollectedFees: BigNumber[] = await feesCollector.getCollectedFeeAmounts(tokens.addresses);
+          const previousCollectedFees: BigNumber[] = await feeForwarder.getCollectedFeeAmounts(tokens.addresses);
           await joinPool({ dueProtocolFeeAmounts, fromRelayer, fromInternalBalance, signature });
-          const currentCollectedFees: BigNumber[] = await feesCollector.getCollectedFeeAmounts(tokens.addresses);
+          const currentCollectedFees: BigNumber[] = await feeForwarder.getCollectedFeeAmounts(tokens.addresses);
 
           expect(arraySub(currentCollectedFees, previousCollectedFees)).to.deep.equal(dueProtocolFeeAmounts);
+
+          const isAllZero = dueProtocolFeeAmounts.every((item) => item.toString() === '0');
+          if (!isAllZero) {
+            expect(await feeForwarder.lastDestination()).is.eq(pool.address);
+          }
         });
 
         it('joins multiple times', async () => {

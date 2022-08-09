@@ -23,7 +23,10 @@ describe('SwapFeeController.test', function () {
 
   sharedBeforeEach(async () => {
     authorizer = await deploy('v2-vault/TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
-    bal_vault = await deploy('v2-vault/Vault', { args: [authorizer.address, ZERO_ADDRESS, 0, 0] });
+    const feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
+    bal_vault = await deploy('v2-vault/Vault', {
+      args: [authorizer.address, ZERO_ADDRESS, 0, 0, feeForwarder.address],
+    });
   });
   function deploySwapFeeController(
     params: {

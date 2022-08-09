@@ -26,7 +26,8 @@ describe('VaultAuthorization', function () {
   });
 
   async function deployVault(authorizer: string): Promise<Contract> {
-    return deploy('Vault', { args: [authorizer, ZERO_ADDRESS, 0, 0] });
+    const feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
+    return deploy('Vault', { args: [authorizer, ZERO_ADDRESS, 0, 0, feeForwarder.address] });
   }
 
   describe('authorizer', () => {
@@ -244,8 +245,9 @@ describe('VaultAuthorization', function () {
 
     sharedBeforeEach(async () => {
       authorizer = await deploy('TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
+      const feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
       vault = await deploy('Vault', {
-        args: [authorizer.address, ZERO_ADDRESS, PAUSE_WINDOW_DURATION, BUFFER_PERIOD_DURATION],
+        args: [authorizer.address, ZERO_ADDRESS, PAUSE_WINDOW_DURATION, BUFFER_PERIOD_DURATION, feeForwarder.address],
       });
     });
 

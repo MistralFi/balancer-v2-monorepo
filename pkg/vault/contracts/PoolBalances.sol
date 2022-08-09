@@ -197,11 +197,19 @@ abstract contract PoolBalances is Fees, ReentrancyGuard, PoolTokens, UserBalance
 
         InputHelpers.ensureInputLengthMatch(balances.length, amountsInOrOut.length, dueProtocolFeeAmounts.length);
 
+        address poolAddress = _getPoolAddress(poolId);
         // The Vault ignores the `recipient` in joins and the `sender` in exits: it is up to the Pool to keep track of
         // their participation.
         finalBalances = kind == PoolBalanceChangeKind.JOIN
-            ? _processJoinPoolTransfers(sender, change, balances, amountsInOrOut, dueProtocolFeeAmounts)
-            : _processExitPoolTransfers(recipient, change, balances, amountsInOrOut, dueProtocolFeeAmounts);
+            ? _processJoinPoolTransfers(sender, change, balances, amountsInOrOut, dueProtocolFeeAmounts, poolAddress)
+            : _processExitPoolTransfers(
+                recipient,
+                change,
+                balances,
+                amountsInOrOut,
+                dueProtocolFeeAmounts,
+                poolAddress
+            );
     }
 
     /**
@@ -216,7 +224,8 @@ abstract contract PoolBalances is Fees, ReentrancyGuard, PoolTokens, UserBalance
         PoolBalanceChange memory change,
         bytes32[] memory balances,
         uint256[] memory amountsIn,
-        uint256[] memory dueProtocolFeeAmounts
+        uint256[] memory dueProtocolFeeAmounts,
+        address poolAddress
     ) private returns (bytes32[] memory finalBalances) {
         // We need to track how much of the received ETH was used and wrapped into WETH to return any excess.
         uint256 wrappedEth = 0;
@@ -235,7 +244,7 @@ abstract contract PoolBalances is Fees, ReentrancyGuard, PoolTokens, UserBalance
             }
 
             uint256 feeAmount = dueProtocolFeeAmounts[i];
-            _payFeeAmount(_translateToIERC20(asset), feeAmount);
+            _payFeeAmount(poolAddress, _translateToIERC20(asset), feeAmount, false);
 
             // Compute the new Pool balances. Note that the fee amount might be larger than `amountIn`,
             // resulting in an overall decrease of the Pool's balance for a token.
@@ -260,7 +269,8 @@ abstract contract PoolBalances is Fees, ReentrancyGuard, PoolTokens, UserBalance
         PoolBalanceChange memory change,
         bytes32[] memory balances,
         uint256[] memory amountsOut,
-        uint256[] memory dueProtocolFeeAmounts
+        uint256[] memory dueProtocolFeeAmounts,
+        address poolAddress
     ) private returns (bytes32[] memory finalBalances) {
         finalBalances = new bytes32[](balances.length);
         for (uint256 i = 0; i < change.assets.length; ++i) {
@@ -272,7 +282,7 @@ abstract contract PoolBalances is Fees, ReentrancyGuard, PoolTokens, UserBalance
             _sendAsset(asset, amountOut, recipient, change.useInternalBalance);
 
             uint256 feeAmount = dueProtocolFeeAmounts[i];
-            _payFeeAmount(_translateToIERC20(asset), feeAmount);
+            _payFeeAmount(poolAddress, _translateToIERC20(asset), feeAmount, false);
 
             // Compute the new Pool balances. A Pool's token balance always decreases after an exit (potentially by 0).
             finalBalances[i] = balances[i].decreaseCash(amountOut.add(feeAmount));

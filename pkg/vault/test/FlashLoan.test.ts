@@ -16,7 +16,7 @@ import { ANY_ADDRESS, ZERO_ADDRESS } from '@balancer-labs/v2-helpers/src/constan
 
 describe('Flash Loans', () => {
   let admin: SignerWithAddress, minter: SignerWithAddress, feeSetter: SignerWithAddress, other: SignerWithAddress;
-  let authorizer: Contract, vault: Contract, recipient: Contract, feesCollector: Contract;
+  let authorizer: Contract, vault: Contract, recipient: Contract, feesCollector: Contract, feeForwarder: Contract;
   let tokens: TokenList;
 
   before('setup', async () => {
@@ -27,7 +27,9 @@ describe('Flash Loans', () => {
     const WETH = await TokensDeployer.deployToken({ symbol: 'WETH' });
 
     authorizer = await deploy('TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
-    vault = await deploy('Vault', { args: [authorizer.address, WETH.address, 0, 0] });
+    feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
+
+    vault = await deploy('Vault', { args: [authorizer.address, WETH.address, 0, 0, feeForwarder.address] });
     recipient = await deploy('MockFlashLoanRecipient', { from: other, args: [vault.address] });
     feesCollector = await deployedAt('ProtocolFeesCollector', await vault.getProtocolFeesCollector());
 

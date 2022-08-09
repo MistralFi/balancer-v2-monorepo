@@ -31,7 +31,8 @@ describe('Swap Validation', () => {
     const WETH = await TokensDeployer.deployToken({ symbol: 'WETH' });
 
     authorizer = await deploy('TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
-    vault = await deploy('Vault', { args: [authorizer.address, WETH.address, MONTH, MONTH] });
+    const feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
+    vault = await deploy('Vault', { args: [authorizer.address, WETH.address, MONTH, MONTH, feeForwarder.address] });
     tokens = await TokenList.create(['DAI', 'MKR', 'SNX', 'BAT'], { sorted: true });
 
     const totalPools = 5;

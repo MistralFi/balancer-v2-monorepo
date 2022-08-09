@@ -39,7 +39,8 @@ describe('Internal Balance', () => {
     weth = await TokensDeployer.deployToken({ symbol: 'WETH' });
 
     authorizer = await deploy('TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
-    vault = await deploy('Vault', { args: [authorizer.address, weth.address, MONTH, MONTH] });
+    const feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
+    vault = await deploy('Vault', { args: [authorizer.address, weth.address, MONTH, MONTH, feeForwarder.address] });
   });
 
   describe('deposit internal balance', () => {

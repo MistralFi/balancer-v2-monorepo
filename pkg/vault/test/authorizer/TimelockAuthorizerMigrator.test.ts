@@ -42,7 +42,8 @@ describe('TimelockAuthorizerMigrator', () => {
 
   sharedBeforeEach('set up vault', async () => {
     oldAuthorizer = await deploy('MockBasicAuthorizer');
-    vault = await deploy('Vault', { args: [oldAuthorizer.address, ZERO_ADDRESS, 0, 0] });
+    const feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
+    vault = await deploy('Vault', { args: [oldAuthorizer.address, ZERO_ADDRESS, 0, 0, feeForwarder.address] });
   });
 
   sharedBeforeEach('set up permissions', async () => {

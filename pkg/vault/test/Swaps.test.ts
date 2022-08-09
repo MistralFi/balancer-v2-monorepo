@@ -64,7 +64,8 @@ describe('Swaps', () => {
     tokens = await TokenList.create(['DAI', 'MKR', 'SNX', 'WETH']);
 
     authorizer = await deploy('TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
-    vault = await deploy('Vault', { args: [authorizer.address, tokens.WETH.address, 0, 0] });
+    const feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
+    vault = await deploy('Vault', { args: [authorizer.address, tokens.WETH.address, 0, 0, feeForwarder.address] });
 
     await tokens.mint({ to: [lp, trader], amount: bn(200e18) });
     await tokens.approve({ to: vault, from: [lp, trader], amount: MAX_UINT112 });

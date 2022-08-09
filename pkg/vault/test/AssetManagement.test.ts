@@ -32,7 +32,8 @@ describe('Asset Management', function () {
 
   sharedBeforeEach('deploy vault', async () => {
     authorizer = await deploy('TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
-    vault = await deploy('Vault', { args: [authorizer.address, ZERO_ADDRESS, MONTH, MONTH] });
+    const feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
+    vault = await deploy('Vault', { args: [authorizer.address, ZERO_ADDRESS, MONTH, MONTH, feeForwarder.address] });
   });
 
   context('with general pool', () => {
