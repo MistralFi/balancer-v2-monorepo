@@ -495,6 +495,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@balancer-labs/v2-pool-utils@workspace:pkg/pool-utils"
   dependencies:
+    "@balancer-labs/v2-asset-manager-utils": "workspace:*"
     "@balancer-labs/v2-common": "workspace:*"
     "@balancer-labs/v2-helpers": "workspace:*"
     "@balancer-labs/v2-interfaces": "workspace:*"
