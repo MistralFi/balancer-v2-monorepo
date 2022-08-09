@@ -20,7 +20,7 @@ import "@balancer-labs/v2-interfaces/contracts/solidity-utils/openzeppelin/IERC2
 contract MockForwarder is IForwarder {
     address public lastDestination;
 
-    function registerIncome(address[] memory tokens, address destination) external override {
+    function registerIncome(address[] memory, address destination) external override {
         lastDestination = destination;
     }
 

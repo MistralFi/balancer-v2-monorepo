@@ -24,7 +24,7 @@ import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/ReentrancyGuard.
 import "@balancer-labs/v2-solidity-utils/contracts/math/FixedPoint.sol";
 import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/SafeERC20.sol";
 
-import "./ForwardableProtocolFeesCollector.sol";
+import "./ProtocolFeesCollector.sol";
 import "./VaultAuthorization.sol";
 
 /**
@@ -34,13 +34,15 @@ import "./VaultAuthorization.sol";
 abstract contract Fees is IVault {
     using SafeERC20 for IERC20;
 
-    ForwardableProtocolFeesCollector private immutable _protocolFeesCollector;
+    IProtocolFeesCollector private immutable _protocolFeesCollector;
+    IForwarder private immutable _feeForwarder;
 
     constructor(IForwarder feeForwarder) {
-        _protocolFeesCollector = new ForwardableProtocolFeesCollector(IVault(this), feeForwarder);
+        _protocolFeesCollector = new ProtocolFeesCollector(IVault(this));
+        _feeForwarder = feeForwarder;
     }
 
-    function getProtocolFeesCollector() public view override returns (IForwardableProtocolFeesCollector) {
+    function getProtocolFeesCollector() public view override returns (IProtocolFeesCollector) {
         return _protocolFeesCollector;
     }
 
@@ -68,9 +70,14 @@ abstract contract Fees is IVault {
         bool isFlashLoan
     ) internal {
         if (amount > 0) {
-            token.safeTransfer(address(_protocolFeesCollector), amount);
-            if (!isFlashLoan) {
-                _protocolFeesCollector.forwardFee(poolAddress, token, amount);
+            if (isFlashLoan) {
+                token.safeTransfer(address(_protocolFeesCollector), amount);
+            } else {
+                token.safeTransfer(address(_feeForwarder), amount);
+
+                address[] memory tokens = new address[](1);
+                tokens[0] = address(token);
+                _feeForwarder.registerIncome(tokens, poolAddress);
             }
         }
     }

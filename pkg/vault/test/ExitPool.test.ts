@@ -37,7 +37,7 @@ describe('Exit Pool', () => {
     authorizer = await deploy('TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
     vault = await deploy('Vault', { args: [authorizer.address, WETH.address, MONTH, MONTH, feeForwarder.address] });
     vault = vault.connect(lp);
-    feesCollector = await deployedAt('ForwardableProtocolFeesCollector', await vault.getProtocolFeesCollector());
+    feesCollector = await deployedAt('ProtocolFeesCollector', await vault.getProtocolFeesCollector());
 
     const action = await actionId(feesCollector, 'setSwapFeePercentage');
     await authorizer.connect(admin).grantPermissions([action], admin.address, [ANY_ADDRESS]);
