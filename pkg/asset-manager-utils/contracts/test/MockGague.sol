@@ -21,27 +21,27 @@ import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/SafeERC20.sol";
 contract MockGague is IGauge {
     using SafeERC20 for IERC20;
 
-    address[] public rewardTokens;
+    address[] internal _rewardTokens;
     uint256[] public dummyRewardAmounts;
     address public stackingToken;
 
     mapping(address => uint256) _rewardTokensLength;
 
     constructor(
-        address[] memory _rewardTokens,
+        address[] memory rewardTokens,
         uint256[] memory _dummyRewardAmounts,
         address _stackingToken
     ) {
         require(_stackingToken != address(0), "zero stackingToken");
-        rewardTokens = _rewardTokens;
+        _rewardTokens = rewardTokens;
         dummyRewardAmounts = _dummyRewardAmounts;
         stackingToken = _stackingToken;
-        _rewardTokensLength[stackingToken] = _rewardTokens.length;
+        _rewardTokensLength[stackingToken] = rewardTokens.length;
     }
 
     function getAllRewards(address, address account) external override {
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
-            IERC20(rewardTokens[i]).safeTransfer(account, dummyRewardAmounts[i]);
+        for (uint256 i = 0; i < _rewardTokens.length; i++) {
+            IERC20(_rewardTokens[i]).safeTransfer(account, dummyRewardAmounts[i]);
         }
     }
 
@@ -50,6 +50,6 @@ contract MockGague is IGauge {
     }
 
     function rewardTokens(address, uint256 tokenIndex) external view override returns (address) {
-        return rewardTokens[tokenIndex];
+        return _rewardTokens[tokenIndex];
     }
 }
