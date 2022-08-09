@@ -13,8 +13,8 @@ import {
 } from '@balancer-labs/v2-helpers/src/models/pools/weighted/types';
 import { deploy } from '@balancer-labs/v2-helpers/src/contract';
 import { currentTimestamp, MONTH, DAY, HOUR } from '@balancer-labs/v2-helpers/src/time';
+import { encodeInvestmentConfig } from '@balancer-labs/v2-asset-manager-utils/test/helpers/rebalance';
 import Vault from '@balancer-labs/v2-helpers/src/models/vault/Vault';
-import { encodeInvestmentConfig } from '@balancer-labs/v2-pool-utils/test/helpers/rebalance';
 import { ZERO_ADDRESS, MAX_UINT256 } from '@balancer-labs/v2-helpers/src/constants';
 import { SwapKind } from '@balancer-labs/balancer-js';
 
