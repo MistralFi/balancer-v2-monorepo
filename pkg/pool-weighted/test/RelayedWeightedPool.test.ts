@@ -1,17 +1,14 @@
-import chai from 'chai';
-import { solidity } from 'ethereum-waffle';
-import TokenList from '@balancer-labs/v2-helpers/src/models/tokens/TokenList';
+import { expect } from 'chai';
 import { bn, fp } from '@balancer-labs/v2-helpers/src/numbers';
-import { range } from 'lodash';
+
+import TokenList from '@balancer-labs/v2-helpers/src/models/tokens/TokenList';
 import WeightedPool from '@balancer-labs/v2-helpers/src/models/pools/weighted/WeightedPool';
 import { WeightedPoolType } from '@balancer-labs/v2-helpers/src/models/pools/weighted/types';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { range } from 'lodash';
 import { ethers } from 'hardhat';
 import { actionId } from '@balancer-labs/v2-helpers/src/models/misc/actions';
 import { ANY_ADDRESS } from '@balancer-labs/v2-helpers/src/constants';
-
-const { expect } = chai;
-chai.use(solidity);
 
 describe('RelayedWeightedPool tests', function () {
   let allTokens: TokenList;
