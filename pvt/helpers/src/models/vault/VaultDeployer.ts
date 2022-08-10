@@ -33,7 +33,8 @@ export default {
   },
 
   async _deployMocked({ from }: VaultDeployment, authorizer: Contract, feeForwarder: Contract): Promise<Contract> {
-    return deploy('v2-pool-utils/MockVault', { from, args: [authorizer.address, feeForwarder.address] });
+    const weth = await TokensDeployer.deployToken({ symbol: 'WETH' });
+    return deploy('v2-pool-utils/MockVault', { from, args: [authorizer.address, feeForwarder.address, weth.address] });
   },
 
   async _deployAuthorizer(admin: SignerWithAddress, from?: SignerWithAddress): Promise<Contract> {

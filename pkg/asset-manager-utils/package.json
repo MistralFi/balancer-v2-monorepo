@@ -1,13 +1,13 @@
 {
-  "name": "@balancer-labs/v2-pool-utils",
-  "version": "2.0.1",
-  "description": "Utilities for creating Balancer V2 Pools",
+  "name": "@balancer-labs/v2-asset-manager-utils",
+  "version": "0.2.0",
+  "description": "V2 Asset Managers",
   "license": "GPL-3.0-only",
-  "homepage": "https://github.com/balancer-labs/balancer-v2-monorepo/tree/master/pkg/pool-utils#readme",
+  "homepage": "https://github.com/balancer-labs/balancer-v2-monorepo/tree/master/pkg/asset-manager-utils#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/balancer-labs/balancer-v2-monorepo.git",
-    "directory": "pkg/pool-utils"
+    "directory": "pkg/asset-manager-utils"
   },
   "bugs": {
     "url": "https://github.com/balancer-labs/balancer-v2-monorepo/issues"
@@ -29,9 +29,7 @@
     "format:solidity": "../../node_modules/.bin/prettier --write **/*.sol"
   },
   "devDependencies": {
-    "@balancer-labs/v2-asset-manager-utils": "workspace:*",
     "@balancer-labs/v2-common": "workspace:*",
-    "@balancer-labs/v2-helpers": "workspace:*",
     "@balancer-labs/v2-interfaces": "workspace:*",
     "@balancer-labs/v2-solidity-utils": "workspace:*",
     "@balancer-labs/v2-vault": "workspace:*",

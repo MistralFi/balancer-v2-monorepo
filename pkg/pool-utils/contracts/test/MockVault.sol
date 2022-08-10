@@ -34,7 +34,7 @@ contract MockVault is IPoolSwapStructs {
     IAuthorizer private _authorizer;
     IProtocolFeesCollector private _protocolFeesCollector;
     address private _feeForwarder;
-
+    IWETH _weth;
     mapping(bytes32 => Pool) private pools;
 
     event Swap(bytes32 indexed poolId, IERC20 indexed tokenIn, IERC20 indexed tokenOut, uint256 amount);
@@ -47,8 +47,13 @@ contract MockVault is IPoolSwapStructs {
         uint256[] protocolFees
     );
 
-    constructor(IAuthorizer authorizer, address feeForwarder) {
+    constructor(
+        IAuthorizer authorizer,
+        address feeForwarder,
+        IWETH weth
+    ) {
         _authorizer = authorizer;
+        _weth = weth;
         _feeForwarder = feeForwarder;
         _protocolFeesCollector = new ProtocolFeesCollector(IVault(address(this)));
     }
@@ -179,5 +184,10 @@ contract MockVault is IPoolSwapStructs {
         }
 
         emit PoolBalanceChanged(poolId, msg.sender, tokens, deltas, dueProtocolFeeAmounts);
+    }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function WETH() external view returns (IWETH) {
+        return _weth;
     }
 }
