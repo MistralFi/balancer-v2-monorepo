@@ -260,7 +260,8 @@ describe('WeightedMath', function () {
 
       const lastInvariant = fp(300);
       const currentInvariant = fp(299);
-
+      // ts compilation glitch
+      mock = await deploy('MockWeightedMath');
       const toMint = await mock.calculateDueProtocolSwapFeeBPTAmount(
         totalSupply,
         lastInvariant,
