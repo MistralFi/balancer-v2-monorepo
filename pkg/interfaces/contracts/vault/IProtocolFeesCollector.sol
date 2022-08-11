@@ -35,7 +35,7 @@ interface IProtocolFeesCollector {
 
     function setFlashLoanFeePercentage(uint256 newFlashLoanFeePercentage) external;
 
-    function setFlashLoanFeeDiscount(address[] memory users, bool[] memory isDiscounted) external;
+    function setFlashLoanFeeDiscount(address[] memory users, bool isDiscounted) external;
 
     function getSwapFeePercentage() external view returns (uint256);
 

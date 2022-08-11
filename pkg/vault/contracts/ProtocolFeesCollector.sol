@@ -90,15 +90,10 @@ contract ProtocolFeesCollector is IProtocolFeesCollector, Authentication, Reentr
         emit FlashLoanFeePercentageChanged(newFlashLoanFeePercentage);
     }
 
-    function setFlashLoanFeeDiscount(address[] memory users, bool[] memory isDiscounted)
-        external
-        override
-        authenticate
-    {
-        _require(users.length == isDiscounted.length, Errors.INPUT_LENGTH_MISMATCH);
+    function setFlashLoanFeeDiscount(address[] memory users, bool isDiscounted) external override authenticate {
         for (uint256 i = 0; i < users.length; ++i) {
-            _flashLoanFeeDiscountedAddresses[users[i]] = isDiscounted[i];
-            FlashLoanFeeDiscountChanged(users[i], isDiscounted[i]);
+            _flashLoanFeeDiscountedAddresses[users[i]] = isDiscounted;
+            FlashLoanFeeDiscountChanged(users[i], isDiscounted);
         }
     }
 
