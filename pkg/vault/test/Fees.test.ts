@@ -12,14 +12,18 @@ import { actionId } from '@balancer-labs/v2-helpers/src/models/misc/actions';
 import Vault from '@balancer-labs/v2-helpers/src/models/vault/Vault';
 
 describe('Fees', () => {
-  let admin: SignerWithAddress, user: SignerWithAddress, feeCollector: SignerWithAddress, other: SignerWithAddress;
+  let deployer: SignerWithAddress,
+    admin: SignerWithAddress,
+    user: SignerWithAddress,
+    feeCollector: SignerWithAddress,
+    other: SignerWithAddress;
 
   let vault: Vault;
   let tokens: TokenList;
   let feesCollector: Contract;
 
   before('setup', async () => {
-    [, admin, user, feeCollector, other] = await ethers.getSigners();
+    [deployer, admin, user, feeCollector, other] = await ethers.getSigners();
   });
 
   sharedBeforeEach('deploy vault', async () => {
@@ -59,8 +63,7 @@ describe('Fees', () => {
         describe('flash loan fee', () => {
           it('sets the percentage properly', async () => {
             await vault.setFlashLoanFeePercentage(MAX_FLASH_LOAN_FEE_PERCENTAGE, { from: admin });
-
-            const flashLoanFeePercentage = await vault.getFlashLoanFeePercentage();
+            const flashLoanFeePercentage = await vault.getFlashLoanFeePercentage(deployer);
             expect(flashLoanFeePercentage).to.equal(MAX_FLASH_LOAN_FEE_PERCENTAGE);
           });
 

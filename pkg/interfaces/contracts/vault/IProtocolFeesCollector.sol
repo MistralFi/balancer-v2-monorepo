@@ -23,6 +23,7 @@ import "./IAuthorizer.sol";
 interface IProtocolFeesCollector {
     event SwapFeePercentageChanged(uint256 newSwapFeePercentage);
     event FlashLoanFeePercentageChanged(uint256 newFlashLoanFeePercentage);
+    event FlashLoanFeeDiscountChanged(address user, bool isDiscounted);
 
     function withdrawCollectedFees(
         IERC20[] calldata tokens,
@@ -34,9 +35,11 @@ interface IProtocolFeesCollector {
 
     function setFlashLoanFeePercentage(uint256 newFlashLoanFeePercentage) external;
 
+    function setFlashLoanFeeDiscount(address[] memory users, bool[] memory isDiscounted) external;
+
     function getSwapFeePercentage() external view returns (uint256);
 
-    function getFlashLoanFeePercentage() external view returns (uint256);
+    function getFlashLoanFeePercentage(address forUser) external view returns (uint256);
 
     function getCollectedFeeAmounts(IERC20[] memory tokens) external view returns (uint256[] memory feeAmounts);
 

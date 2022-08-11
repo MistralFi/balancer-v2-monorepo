@@ -15,12 +15,16 @@ import TokensDeployer from '@balancer-labs/v2-helpers/src/models/tokens/TokensDe
 import { ANY_ADDRESS, ZERO_ADDRESS } from '@balancer-labs/v2-helpers/src/constants';
 
 describe('Flash Loans', () => {
-  let admin: SignerWithAddress, minter: SignerWithAddress, feeSetter: SignerWithAddress, other: SignerWithAddress;
+  let admin: SignerWithAddress,
+    minter: SignerWithAddress,
+    feeSetter: SignerWithAddress,
+    other: SignerWithAddress,
+    whitelistedUser: SignerWithAddress;
   let authorizer: Contract, vault: Contract, recipient: Contract, feesCollector: Contract, feeForwarder: Contract;
   let tokens: TokenList;
 
   before('setup', async () => {
-    [, admin, minter, feeSetter, other] = await ethers.getSigners();
+    [, admin, minter, feeSetter, other, whitelistedUser] = await ethers.getSigners();
   });
 
   sharedBeforeEach('deploy vault & tokens', async () => {
@@ -33,8 +37,15 @@ describe('Flash Loans', () => {
     recipient = await deploy('MockFlashLoanRecipient', { from: other, args: [vault.address] });
     feesCollector = await deployedAt('ProtocolFeesCollector', await vault.getProtocolFeesCollector());
 
-    const action = await actionId(feesCollector, 'setFlashLoanFeePercentage');
-    await authorizer.connect(admin).grantPermissions([action], feeSetter.address, [ANY_ADDRESS]);
+    const setFlashLoanFeePercentageAction = await actionId(feesCollector, 'setFlashLoanFeePercentage');
+    const setFlashLoanFeeDiscountAction = await actionId(feesCollector, 'setFlashLoanFeeDiscount');
+
+    await authorizer
+      .connect(admin)
+      .grantPermissions([setFlashLoanFeePercentageAction, setFlashLoanFeeDiscountAction], feeSetter.address, [
+        ANY_ADDRESS,
+        ANY_ADDRESS,
+      ]);
 
     tokens = await TokenList.create(['DAI', 'MKR'], { from: minter, sorted: true });
     await tokens.mint({ from: minter, to: vault, amount: bn(100e18) });
@@ -85,6 +96,7 @@ describe('Flash Loans', () => {
 
     sharedBeforeEach(async () => {
       await feesCollector.connect(feeSetter).setFlashLoanFeePercentage(feePercentage);
+      await feesCollector.connect(feeSetter).setFlashLoanFeeDiscount([whitelistedUser.address], [true]);
     });
 
     it('zero loans are possible', async () => {
@@ -119,6 +131,19 @@ describe('Flash Loans', () => {
 
       await expectBalanceChange(
         () => vault.connect(other).flashLoan(recipient.address, [tokens.DAI.address], [loan], '0x10'),
+        tokens,
+        { account: feesCollector, changes: { DAI: feeAmount } }
+      );
+
+      expect((await feesCollector.getCollectedFeeAmounts([tokens.DAI.address]))[0]).to.equal(feeAmount);
+    });
+
+    it('the fees module not receives protocol fees from whitelisted users', async () => {
+      const loan = bn(1e18);
+      const feeAmount = 0;
+
+      await expectBalanceChange(
+        () => vault.connect(whitelistedUser).flashLoan(recipient.address, [tokens.DAI.address], [loan], '0x10'),
         tokens,
         { account: feesCollector, changes: { DAI: feeAmount } }
       );
