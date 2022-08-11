@@ -96,7 +96,7 @@ describe('Flash Loans', () => {
 
     sharedBeforeEach(async () => {
       await feesCollector.connect(feeSetter).setFlashLoanFeePercentage(feePercentage);
-      await feesCollector.connect(feeSetter).setFlashLoanFeeDiscount([whitelistedUser.address], [true]);
+      await feesCollector.connect(feeSetter).setFlashLoanFeeDiscount([whitelistedUser.address], true);
     });
 
     it('zero loans are possible', async () => {
