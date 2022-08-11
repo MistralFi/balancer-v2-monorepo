@@ -59,7 +59,7 @@ abstract contract Fees is IVault {
     function _calculateFlashLoanFeeAmount(uint256 amount) internal view returns (uint256) {
         // Fixed point multiplication introduces error: we round up, which means in certain scenarios the charged
         // percentage can be slightly higher than intended.
-        uint256 percentage = getProtocolFeesCollector().getFlashLoanFeePercentage();
+        uint256 percentage = getProtocolFeesCollector().getFlashLoanFeePercentage(msg.sender);
         return FixedPoint.mulUp(amount, percentage);
     }
 

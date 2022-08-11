@@ -192,10 +192,12 @@ export default class Vault {
     return feesCollector.withdrawCollectedFees(tokens, amounts, TypesConverter.toAddress(recipient));
   }
 
-  async getProtocolFeePercentages(): Promise<{ swapFeePercentage: BigNumber; flashLoanFeePercentage: BigNumber }> {
+  async getProtocolFeePercentages(
+    forUser: SignerWithAddress
+  ): Promise<{ swapFeePercentage: BigNumber; flashLoanFeePercentage: BigNumber }> {
     return {
       swapFeePercentage: await this.getSwapFeePercentage(),
-      flashLoanFeePercentage: await this.getFlashLoanFeePercentage(),
+      flashLoanFeePercentage: await this.getFlashLoanFeePercentage(forUser),
     };
   }
 
@@ -203,8 +205,8 @@ export default class Vault {
     return (await this.getFeesCollector()).getSwapFeePercentage();
   }
 
-  async getFlashLoanFeePercentage(): Promise<BigNumber> {
-    return (await this.getFeesCollector()).getFlashLoanFeePercentage();
+  async getFlashLoanFeePercentage(forUser: SignerWithAddress): Promise<BigNumber> {
+    return (await this.getFeesCollector()).getFlashLoanFeePercentage(forUser.address);
   }
 
   async getFeesCollector(): Promise<Contract> {
