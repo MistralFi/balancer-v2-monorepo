@@ -41,7 +41,6 @@ type SolcConfig = {
       enabled: boolean;
       runs?: number;
     };
-    evmVersion: string;
   };
 };
 
@@ -53,7 +52,6 @@ export const compilers: [SolcConfig] = [
         enabled: true,
         runs: 9999,
       },
-      evmVersion: 'london',
     },
   },
 ];
@@ -69,7 +67,6 @@ export const overrides = (packageName: string): Record<string, SolcConfig> => {
           enabled: true,
           runs: contractSettings[contract].runs,
         },
-        evmVersion: 'london',
       },
     };
   }

@@ -10,8 +10,11 @@ import Task from './task';
  */
 export function extractArtifact(task: Task): void {
   const buildInfoDirectory = path.resolve(task.dir(), 'build-info');
+  console.log(`buildInfoDirectory: ${buildInfoDirectory}`);
   if (existsSync(buildInfoDirectory) && statSync(buildInfoDirectory).isDirectory()) {
     for (const buildInfoFileName of readdirSync(buildInfoDirectory)) {
+      console.log(`buildInfoFileName: ${buildInfoFileName}`);
+
       const contractName = path.parse(buildInfoFileName).name;
       const artifact = extractContractArtifact(task, contractName);
       writeContractArtifact(task, contractName, artifact);
