@@ -1,8 +1,7 @@
-# 2022-08-11-timelock-authorizer
+# 20220812-test-4626-vault
 
-Real version of the timelock-authorizer contract, which powers Balancer governance.
-We need to deploy it 2nd time because some sort of cyclic reference between vault and authorizer
+Mocked version of 4626 vault for the test purposes only
 ## Useful Files
 
 - [Klaytn baobab (testnet) address](./output/baobab.json)
-- [`TimelockAuthorizer` ABI](./abi/TimelockAuthorizer.json)
+- [`Mock4626VaultV2` ABI](./abi/Mock4626VaultV2.json)
