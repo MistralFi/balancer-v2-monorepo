@@ -36,4 +36,6 @@ interface ISwapFeeController {
     function getAuthorizer() external view returns (IAuthorizer);
 
     function vault() external view returns (IVault);
+
+    function maxSwapFeePercentage() external view returns (uint256);
 }

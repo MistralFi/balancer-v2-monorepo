@@ -231,3 +231,12 @@ export type RelayedWeightedPoolParams = {
   owner: string;
   relayer: string;
 };
+
+export type RelayedWeightedPoolFactoryParams = {
+  name: string;
+  symbol: string;
+  tokens: string[];
+  normalizedWeights: BigNumberish[];
+  assetManagers: string[];
+  owner: string;
+};
