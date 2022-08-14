@@ -1,10 +1,9 @@
-# 2022-08-11 Vault
+# 2022-08-14 swap-fee-controller
 
-Deployment of the Vault, Balancer V2's core contract.
-
-Note that the Authorizer used in the Vault's original deployment may change over time: the current Authorizer should be retrieved by calling `vault.getAuthorizer()` instead.
+Deployment of the swap-fee-controller, this contract used to control pool fees.
+Pools created via factories will use this contract by dafault.
 
 ## Useful Files
 
 - [Klaytn baobab (testnet) address](./output/baobab.json)
-- [`Vault` ABI](./abi/Vault.json)
+- [`SwapFeeController` ABI](./abi/SwapFeeController.json)

@@ -1,5 +1,5 @@
 import Task, { TaskMode } from '../../src/task';
-import {fp} from "@balancer-labs/v2-helpers/src/numbers";
+import { fp } from '@balancer-labs/v2-helpers/src/numbers';
 
 export type SwapFeeControllerDeployment = {
   Vault: string;
