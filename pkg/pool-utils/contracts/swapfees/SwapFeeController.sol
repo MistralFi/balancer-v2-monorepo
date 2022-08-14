@@ -37,10 +37,10 @@ contract SwapFeeController is ISwapFeeController, Authentication {
 
     IVault public immutable override vault;
 
-    uint256 public maxSwapFeePercentage;
-    uint256 public minSwapFeePercentageStableBCPool;
-    uint256 public minSwapFeePercentageStableExoticPool;
-    uint256 public minSwapFeePercentageRegularPool;
+    uint256 public override maxSwapFeePercentage;
+    uint256 public override minSwapFeePercentageStableBCPool;
+    uint256 public override minSwapFeePercentageStableExoticPool;
+    uint256 public override minSwapFeePercentageRegularPool;
 
     mapping(bytes32 => bool) private _stableBlueChipsPools;
     mapping(bytes32 => bool) private _stableExoticPools;
