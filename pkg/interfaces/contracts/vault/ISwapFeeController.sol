@@ -38,7 +38,10 @@ interface ISwapFeeController {
     function vault() external view returns (IVault);
 
     function maxSwapFeePercentage() external view returns (uint256);
+
     function minSwapFeePercentageStableBCPool() external view returns (uint256);
+
     function minSwapFeePercentageStableExoticPool() external view returns (uint256);
+
     function minSwapFeePercentageRegularPool() external view returns (uint256);
 }

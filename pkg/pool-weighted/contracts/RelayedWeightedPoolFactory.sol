@@ -54,32 +54,33 @@ contract RelayedWeightedPoolFactory is BasePoolSplitCodeFactory, FactoryWidePaus
     function create(NewPoolParams memory poolParams) external returns (address) {
         (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) = getPauseConfiguration();
 
-        RelayedWeightedPool pool = RelayedWeightedPool(_create(
-            abi.encode(
-                RelayedWeightedPool.NewPoolParams({
-                    vault: getVault(),
-                    name: poolParams.name,
-                    symbol: poolParams.symbol,
-                    tokens: poolParams.tokens,
-                    normalizedWeights: poolParams.normalizedWeights,
-                    assetManagers: poolParams.assetManagers,
-                    swapFeePercentage: swapFeeController.maxSwapFeePercentage(),
-                    pauseWindowDuration: pauseWindowDuration,
-                    bufferPeriodDuration: bufferPeriodDuration,
-                    owner: poolParams.owner,
-                    relayer: relayer,
-                    swapFeeController: swapFeeController
-                })
-            )
+        RelayedWeightedPool pool = RelayedWeightedPool(
+            _create(
+                abi.encode(
+                    RelayedWeightedPool.NewPoolParams({
+                        vault: getVault(),
+                        name: poolParams.name,
+                        symbol: poolParams.symbol,
+                        tokens: poolParams.tokens,
+                        normalizedWeights: poolParams.normalizedWeights,
+                        assetManagers: poolParams.assetManagers,
+                        swapFeePercentage: swapFeeController.maxSwapFeePercentage(),
+                        pauseWindowDuration: pauseWindowDuration,
+                        bufferPeriodDuration: bufferPeriodDuration,
+                        owner: poolParams.owner,
+                        relayer: relayer,
+                        swapFeeController: swapFeeController
+                    })
+                )
             )
         );
         _initializeAssetManagers(poolParams.assetManagers, pool.getPoolId());
         return address(pool);
     }
 
-    function _initializeAssetManagers(address[] memory assetManagers, bytes32 poolId) internal{
-        for(uint256 i;i<assetManagers.length;i++){
-            if(assetManagers[i] != address(0)){
+    function _initializeAssetManagers(address[] memory assetManagers, bytes32 poolId) internal {
+        for (uint256 i; i < assetManagers.length; i++) {
+            if (assetManagers[i] != address(0)) {
                 IAssetManagerBase(assetManagers[i]).initialize(poolId);
             }
         }
