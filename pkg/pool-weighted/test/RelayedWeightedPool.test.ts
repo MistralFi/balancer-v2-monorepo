@@ -58,6 +58,11 @@ describe('RelayedWeightedPool tests', function () {
     await relayedWeightedPool.vault.instance
       .connect(user)
       .setRelayerApproval(user.address, relayedWeightedPool.relayer.address, true);
+    await relayedWeightedPool.vault.instance.setRelayerApproval(
+      deployer.address,
+      relayedWeightedPool.relayer.address,
+      true
+    );
   });
 
   describe('General tests', function () {
@@ -68,7 +73,7 @@ describe('RelayedWeightedPool tests', function () {
     });
 
     it('Owner can initialize relayedWeightedPool', async function () {
-      await relayedWeightedPool.init({ recipient, initialBalances });
+      await relayedWeightedPool.initRelayer({ recipient, initialBalances });
       const tokenInfo = await relayedWeightedPool.vault.getPoolTokenInfo(relayedWeightedPool.poolId, tokens.first);
       expect(tokenInfo.cash).is.eq(initialBalances[0]);
       expect(tokenInfo.managed).is.eq(0);
