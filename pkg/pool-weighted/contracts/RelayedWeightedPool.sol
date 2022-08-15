@@ -27,16 +27,8 @@ contract RelayedWeightedPool is WeightedPool, IRelayedBasePool {
 
     IBasePoolRelayer internal immutable _relayer;
 
-    modifier ensureRelayerEnterCall(bytes32 poolId, bytes calldata userData) {
-        WeightedPoolUserData.JoinKind kind = userData.joinKind();
-        if (kind != WeightedPoolUserData.JoinKind.INIT) {
-            require(_relayer.hasCalledPool(poolId), "Only relayer can join pool");
-        }
-        _;
-    }
-
-    modifier ensureRelayerExitCall(bytes32 poolId) {
-        require(_relayer.hasCalledPool(poolId), "Only relayer can exit pool");
+    modifier ensureRelayerCall(bytes32 poolId, bytes calldata userData) {
+        _require(_relayer.hasCalledPool(poolId), Errors.BASE_POOL_RELAYER_NOT_CALLED);
         _;
     }
 
@@ -88,7 +80,7 @@ contract RelayedWeightedPool is WeightedPool, IRelayedBasePool {
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes calldata userData
-    ) public virtual override ensureRelayerEnterCall(poolId, userData) returns (uint256[] memory, uint256[] memory) {
+    ) public virtual override ensureRelayerCall(poolId, userData) returns (uint256[] memory, uint256[] memory) {
         return
             super.onJoinPool(poolId, sender, recipient, balances, lastChangeBlock, protocolSwapFeePercentage, userData);
     }
@@ -102,7 +94,7 @@ contract RelayedWeightedPool is WeightedPool, IRelayedBasePool {
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes calldata userData
-    ) public virtual override ensureRelayerExitCall(poolId) returns (uint256[] memory, uint256[] memory) {
+    ) public virtual override ensureRelayerCall(poolId, userData) returns (uint256[] memory, uint256[] memory) {
         return
             super.onExitPool(poolId, sender, recipient, balances, lastChangeBlock, protocolSwapFeePercentage, userData);
     }
