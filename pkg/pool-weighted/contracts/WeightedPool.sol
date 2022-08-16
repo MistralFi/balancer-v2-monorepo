@@ -105,8 +105,7 @@ contract WeightedPool is BaseWeightedPool, InvariantGrowthProtocolFees {
         uint256 swapFeePercentage,
         uint256 pauseWindowDuration,
         uint256 bufferPeriodDuration,
-        address owner,
-        ISwapFeeController swapFeeController
+        address owner
     )
         BaseWeightedPool(
             vault,
@@ -118,8 +117,7 @@ contract WeightedPool is BaseWeightedPool, InvariantGrowthProtocolFees {
             pauseWindowDuration,
             bufferPeriodDuration,
             owner,
-            false,
-            swapFeeController
+            false
         )
     {
         uint256 numTokens = tokens.length;

@@ -186,8 +186,7 @@ contract ManagedPool is BaseWeightedPool, ProtocolFeeCache, AumProtocolFeeCache,
         IVault vault,
         address owner,
         uint256 pauseWindowDuration,
-        uint256 bufferPeriodDuration,
-        ISwapFeeController swapFeeController
+        uint256 bufferPeriodDuration
     )
         BaseWeightedPool(
             vault,
@@ -199,8 +198,7 @@ contract ManagedPool is BaseWeightedPool, ProtocolFeeCache, AumProtocolFeeCache,
             pauseWindowDuration,
             bufferPeriodDuration,
             owner,
-            true,
-            swapFeeController
+            true
         )
         ProtocolFeeCache(vault, params.protocolSwapFeePercentage)
         AumProtocolFeeCache(params.aumProtocolFeesCollector)
