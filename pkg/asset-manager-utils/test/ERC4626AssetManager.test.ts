@@ -50,9 +50,9 @@ describe('ERC4626AssetManager tests', function () {
     isReturnTokens = true,
     isGage = true,
     gagueReturnAmount = bn(100),
-    assetManagerImplementation = 'ERC4626AssetManager'
+    assetManagerImplementation = 'ERC4626AssetManager',
+    tetuVaultFee = bn(0)
   ) => {
-    //todo feeForwarder should use feeForwarder?
     [deployer, user, vaultFeeCollector] = await ethers.getSigners();
 
     feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
@@ -65,6 +65,9 @@ describe('ERC4626AssetManager tests', function () {
     tetuVault = await deploy('Mock4626VaultV2', {
       args: [tokens.first.address, 'TetuT0', 'TetuT0', isReturnShares, isReturnTokens, vaultFeeCollector.address],
     });
+    if (tetuVaultFee.toString() != bn(0).toString()) {
+      await tetuVault.setFeeNom(tetuVaultFee);
+    }
 
     gague = await deploy('MockGague', {
       args: [[rt.address], [gagueReturnAmount], tetuVault.address],
@@ -118,8 +121,9 @@ describe('ERC4626AssetManager tests', function () {
     }
 
     await pool.vault.instance.connect(user).setRelayerApproval(user.address, pool.relayer.address, true);
+    await pool.vault.instance.setRelayerApproval(deployer.address, pool.relayer.address, true);
 
-    await pool.init({ recipient: deployer, initialBalances });
+    await pool.initRelayer({ recipient: deployer, initialBalances });
     relayer = pool.relayer;
   };
 
@@ -130,13 +134,11 @@ describe('ERC4626AssetManager tests', function () {
   describe('General tests', function () {
     it('Smoke test', async function () {
       expect(await assetManager.getToken()).is.eq(tokens.first.address);
-      expect(await assetManager.maxInvestableBalance(poolId)).is.eq(bn(720000000000000000));
+      expect(await assetManager.maxInvestableBalance(poolId)).is.eq(0);
     });
 
     it('Max investable balance tests', async function () {
       const expectedToBeInvested = initialBalances[0].mul(targetPercentage).div(fp(1));
-      expect(await assetManager.maxInvestableBalance(poolId)).is.eq(expectedToBeInvested);
-      await assetManager.rebalance(poolId, false);
       expect(await assetManager.maxInvestableBalance(poolId)).is.eq(0);
       const config = {
         targetPercentage: targetPercentage.div(2),
@@ -203,8 +205,7 @@ describe('ERC4626AssetManager tests', function () {
     });
 
     it('AM should not invest in tetu vault if vault not returns receipt tokens', async function () {
-      await setup(false, true);
-      await expect(assetManager.rebalance(poolId, false)).is.revertedWith('AM should receive shares after the deposit');
+      await expect(setup(false, true)).is.revertedWith('AM should receive shares after the deposit');
     });
 
     it('AM should not withdraw from tetu vault if vault not returns tokens', async function () {
@@ -230,9 +231,9 @@ describe('ERC4626AssetManager tests', function () {
       await pool.joinGivenInRelayer({ amountsIn: [t0ToDeposit, t1ToDeposit], from: user });
       expect(await pool.balanceOf(user.address)).is.not.equal(0);
 
-      const tx = await assetManager.rebalance(poolId, false);
+      const tx = await assetManager.rebalance(poolId, true);
       const receipt = await tx.wait();
-      expect(receipt.gasUsed).is.lt(70000, 'Pool Rebalance transaction consumes more gas than expected');
+      expect(receipt.gasUsed).is.lt(150000, 'Pool Rebalance transaction consumes more gas than expected');
 
       const balances = await vault.getPoolTokenInfo(poolId, tokens.first);
       const expectedToBeInTetuVault = initialBalances[0].add(t0ToDeposit).mul(targetPercentage).div(fp(1));
@@ -291,18 +292,13 @@ describe('ERC4626AssetManager tests', function () {
     });
 
     it('Relayer should disallows reentrancy on join operation', async function () {
-      await setup(true, true, true, bn(100), 'MockReentrantAssetManager');
-      const t0ToDeposit = fp(10);
-      const t1ToDeposit = fp(10);
-      await expect(pool.joinGivenInRelayer({ from: user, amountsIn: [t0ToDeposit, t1ToDeposit] })).is.revertedWith(
+      await expect(setup(true, true, true, bn(100), 'MockReentrantAssetManager')).is.revertedWith(
         'Rebalancing relayer reentered'
       );
     });
 
     it('AM should properly calculate amounts for vault with fee', async function () {
-      await tetuVault.setFeeNom(bn(10));
-      await assetManager.rebalance(poolId, false);
-
+      await setup(true, true, true, bn(100), 'ERC4626AssetManager', bn(10));
       const [poolCash, poolManaged] = await assetManager.getPoolBalances(poolId);
       expect(poolCash).is.eq(bn('180000000000000000'));
       // 180000000000000000 - 10%

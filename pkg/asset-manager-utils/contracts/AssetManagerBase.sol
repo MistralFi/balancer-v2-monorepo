@@ -130,8 +130,6 @@ abstract contract AssetManagerBase is IAssetManagerBase {
         uint256 aum = _getAUM();
         (uint256 poolCash, , , ) = balancerVault.getPoolTokenInfo(poolId, underlying);
         // Calculate the managed portion of funds locally as the Vault is unaware of returns
-        //    return int256(((poolCash + aum) * _config.targetPercentage) / _CONFIG_PRECISION) - int256(aum);
-        //todo check / _CONFIG_PRECISION
         return int256(FixedPoint.mulDown(poolCash.add(aum), _config.targetPercentage)) - int256(aum);
     }
 
