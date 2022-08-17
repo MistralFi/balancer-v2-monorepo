@@ -23,35 +23,31 @@ import "./WeightedPool.sol";
 /// @dev RelayedWeightedPool is a extension of standard Balancer's Weighted pool with restricted joinPool and exitPool
 ///      Those methods should be called by the Relayer only to allow usage of Asset managers (rebalancing logic)
 contract RelayedWeightedPool is WeightedPool, RelayedBasePool {
-
-
-    // The constructor arguments are received in a struct to work around stack-too-deep issues
-    struct NewPoolParams {
-        IVault vault;
-        string name;
-        string symbol;
-        IERC20[] tokens;
-        uint256[] normalizedWeights;
-        address[] assetManagers;
-        uint256 swapFeePercentage;
-        uint256 pauseWindowDuration;
-        uint256 bufferPeriodDuration;
-        address owner;
-        IBasePoolRelayer relayer;
-    }
-
-    constructor(NewPoolParams memory params)
+    constructor(
+        IVault vault,
+        string memory name,
+        string memory symbol,
+        IERC20[] memory tokens,
+        uint256[] memory normalizedWeights,
+        address[] memory assetManagers,
+        uint256 swapFeePercentage,
+        uint256 pauseWindowDuration,
+        uint256 bufferPeriodDuration,
+        address owner,
+        IBasePoolRelayer relayer
+    )
         WeightedPool(
-            params.vault,
-            params.name,
-            params.symbol,
-            params.tokens,
-            params.normalizedWeights,
-            params.assetManagers,
-            params.swapFeePercentage,
-            params.pauseWindowDuration,
-            params.bufferPeriodDuration,
-            params.owner
+            vault,
+            name,
+            symbol,
+            tokens,
+            normalizedWeights,
+            assetManagers,
+            swapFeePercentage,
+            pauseWindowDuration,
+            bufferPeriodDuration,
+            owner
         )
-        RelayedBasePool(params.relayer){}
+        RelayedBasePool(relayer)
+    {}
 }
