@@ -230,5 +230,4 @@ export type RelayedWeightedPoolParams = {
   bufferPeriodDuration: BigNumberish;
   owner: string;
   relayer: string;
-  swapFeeController: string;
 };
