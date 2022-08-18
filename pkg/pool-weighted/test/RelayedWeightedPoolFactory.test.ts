@@ -5,24 +5,27 @@ import { BigNumber, Contract } from 'ethers';
 import { fp } from '@balancer-labs/v2-helpers/src/numbers';
 import { advanceTime, currentTimestamp, MONTH } from '@balancer-labs/v2-helpers/src/time';
 import * as expectEvent from '@balancer-labs/v2-helpers/src/test/expectEvent';
-import { ZERO_ADDRESS } from '@balancer-labs/v2-helpers/src/constants';
+import { ANY_ADDRESS, ZERO_ADDRESS } from '@balancer-labs/v2-helpers/src/constants';
 import { deploy, deployedAt } from '@balancer-labs/v2-helpers/src/contract';
 
 import Vault from '@balancer-labs/v2-helpers/src/models/vault/Vault';
 import TokenList from '@balancer-labs/v2-helpers/src/models/tokens/TokenList';
 import { toNormalizedWeights } from '@balancer-labs/balancer-js';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { RelayedWeightedPoolFactoryParams } from '@balancer-labs/v2-helpers/src/models/pools/weighted/types';
+import { actionId } from '@balancer-labs/v2-helpers/src/models/misc/actions';
 
 describe('RelayedWeightedPoolFactory', function () {
   let tokens: TokenList;
   let factory: Contract;
   let vault: Vault;
-  let swapFeeController: Contract;
   let relayer: Contract;
   let tetuVault: Contract;
   let assetManagers: string[];
-  let assetManager: Contract, owner: SignerWithAddress;
+  let assetManager: Contract,
+    deployer: SignerWithAddress,
+    poolOwner: SignerWithAddress,
+    owner: SignerWithAddress,
+    vaultFeeCollector: SignerWithAddress;
 
   const NAME = 'Balancer Pool Token';
   const SYMBOL = 'BPT';
@@ -35,18 +38,15 @@ describe('RelayedWeightedPoolFactory', function () {
   let createTime: BigNumber;
 
   before('setup signers', async () => {
-    [, , owner] = await ethers.getSigners();
+    [deployer, poolOwner, owner, vaultFeeCollector] = await ethers.getSigners();
   });
 
   sharedBeforeEach('deploy factory & tokens', async () => {
     vault = await Vault.create();
-    swapFeeController = await deploy('v2-pool-utils/swapfees/SwapFeeController', {
-      args: [vault.address, fp(0.01), fp(0.0001), fp(0.0004), fp(0.0025)],
-    });
     relayer = await deploy('v2-asset-manager-utils/Relayer', { args: [vault.address] });
 
     factory = await deploy('RelayedWeightedPoolFactory', {
-      args: [vault.address, relayer.address, swapFeeController.address],
+      args: [vault.address, relayer.address],
     });
 
     createTime = await currentTimestamp();
@@ -54,29 +54,22 @@ describe('RelayedWeightedPoolFactory', function () {
     tokens = await TokenList.create(['MKR', 'DAI', 'SNX', 'BAT'], { sorted: true });
 
     tetuVault = await deploy('v2-asset-manager-utils/test/Mock4626VaultV2', {
-      args: [tokens.first.address, 'TetuT0', 'TetuT0', true, true, swapFeeController.address],
+      args: [tokens.first.address, 'TetuT0', 'TetuT0', true, true, vaultFeeCollector.address],
     });
 
     assetManagers = Array(tokens.length).fill(ZERO_ADDRESS);
 
     // Deploy Asset manager
     assetManager = await deploy('v2-asset-manager-utils/ERC4626AssetManager', {
-      args: [vault.address, tetuVault.address, tokens.DAI.address, swapFeeController.address, ZERO_ADDRESS],
+      args: [vault.address, tetuVault.address, tokens.DAI.address, vaultFeeCollector.address, ZERO_ADDRESS],
     });
     assetManagers[0] = assetManager.address;
   });
 
   async function createPool(): Promise<Contract> {
-    const newPoolParams: RelayedWeightedPoolFactoryParams = {
-      name: NAME,
-      symbol: SYMBOL,
-      tokens: tokens.addresses,
-      normalizedWeights: WEIGHTS,
-      assetManagers: assetManagers,
-      owner: owner.address,
-    };
-
-    const receipt = await (await factory.create(newPoolParams)).wait();
+    const receipt = await (
+      await factory.connect(poolOwner).create(NAME, SYMBOL, tokens.addresses, WEIGHTS, assetManagers)
+    ).wait();
     const event = expectEvent.inReceipt(receipt, 'PoolCreated');
     return deployedAt('RelayedWeightedPool', event.args.pool);
   }
@@ -86,20 +79,22 @@ describe('RelayedWeightedPoolFactory', function () {
 
     sharedBeforeEach(async () => {
       pool = await createPool();
+      if (vault.authorizer != null) {
+        const setSwapFee = await actionId(pool, 'setSwapFeePercentage');
+        await vault.authorizer.grantPermissions([setSwapFee], deployer.address, [ANY_ADDRESS]);
+      }
     });
 
-    it('sets the vault', async () => {
+    it('default configuration', async () => {
       expect(await pool.getVault()).to.equal(vault.address);
       expect(await pool.getRelayer()).to.equal(relayer.address);
+      expect(await pool.getOwner()).to.equal('0xBA1BA1ba1BA1bA1bA1Ba1BA1ba1BA1bA1ba1ba1B');
+      expect(await pool.getSwapFeePercentage()).to.equal(POOL_SWAP_FEE_PERCENTAGE);
     });
 
     it('assetManager should be initialized during pool construction', async () => {
       const nonExistingPoolId = '0xc11111111111111111175d088814bf32b1f5d7c9000200000000000000000000';
       await expect(assetManager.initialize(nonExistingPoolId)).revertedWith('Already initialised');
-    });
-
-    it('sets the swapFeeController', async () => {
-      expect(await pool.getSwapFeeController()).to.equal(swapFeeController.address);
     });
 
     it('registers tokens in the vault', async () => {
@@ -122,12 +117,14 @@ describe('RelayedWeightedPoolFactory', function () {
       });
     });
 
-    it('sets swap fee', async () => {
-      expect(await pool.getSwapFeePercentage()).to.equal(POOL_SWAP_FEE_PERCENTAGE);
+    it('sets swap fee by vault owner', async () => {
+      expect(await pool.setSwapFeePercentage(POOL_SWAP_FEE_PERCENTAGE.add(1)));
     });
 
-    it('sets the owner ', async () => {
-      expect(await pool.getOwner()).to.equal(owner.address);
+    it('sets swap fee by pool owner should be rejected', async () => {
+      await expect(pool.connect(poolOwner).setSwapFeePercentage(POOL_SWAP_FEE_PERCENTAGE.add(1))).is.revertedWith(
+        'BAL#401'
+      );
     });
 
     it('sets the name', async () => {
@@ -157,7 +154,7 @@ describe('RelayedWeightedPoolFactory', function () {
       await advanceTime(BASE_PAUSE_WINDOW_DURATION / 3);
       assetManagers[0] = (
         await deploy('v2-asset-manager-utils/ERC4626AssetManager', {
-          args: [vault.address, tetuVault.address, tokens.DAI.address, swapFeeController.address, ZERO_ADDRESS],
+          args: [vault.address, tetuVault.address, tokens.DAI.address, vaultFeeCollector.address, ZERO_ADDRESS],
         })
       ).address;
       const secondPool = await createPool();
@@ -173,7 +170,7 @@ describe('RelayedWeightedPoolFactory', function () {
       await advanceTime(BASE_PAUSE_WINDOW_DURATION + 1);
       assetManagers[0] = (
         await deploy('v2-asset-manager-utils/ERC4626AssetManager', {
-          args: [vault.address, tetuVault.address, tokens.DAI.address, swapFeeController.address, ZERO_ADDRESS],
+          args: [vault.address, tetuVault.address, tokens.DAI.address, vaultFeeCollector.address, ZERO_ADDRESS],
         })
       ).address;
       const pool = await createPool();
