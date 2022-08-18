@@ -11,13 +11,11 @@ import {
   ManagedPoolParams,
   ManagedPoolRights,
   RawWeightedPoolDeployment,
-  RelayedWeightedPoolParams,
   WeightedPoolDeployment,
   WeightedPoolType,
 } from './types';
 import { ZERO_ADDRESS } from '@balancer-labs/v2-helpers/src/constants';
 import { DAY } from '@balancer-labs/v2-helpers/src/time';
-import { fp } from '../../../numbers';
 import WeightedPool from './WeightedPool';
 
 const NAME = 'Balancer Pool Token';
