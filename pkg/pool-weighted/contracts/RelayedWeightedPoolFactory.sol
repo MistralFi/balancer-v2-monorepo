@@ -16,65 +16,57 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "@balancer-labs/v2-interfaces/contracts/vault/IVault.sol";
-import "@balancer-labs/v2-interfaces/contracts/vault/ISwapFeeController.sol";
-import "@balancer-labs/v2-interfaces/contracts/pool-utils/IRelayer.sol";
-import "@balancer-labs/v2-interfaces/contracts/pool-utils/IAssetManagerBase.sol";
 
 import "@balancer-labs/v2-pool-utils/contracts/factories/BasePoolSplitCodeFactory.sol";
 import "@balancer-labs/v2-pool-utils/contracts/factories/FactoryWidePauseWindow.sol";
+import "@balancer-labs/v2-interfaces/contracts/pool-utils/IRelayer.sol";
+import "@balancer-labs/v2-interfaces/contracts/pool-utils/IAssetManagerBase.sol";
 
 import "./RelayedWeightedPool.sol";
 
 contract RelayedWeightedPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
-    ISwapFeeController public immutable swapFeeController;
+    // pool ownership should be delegated to the Mistral governance to avoid pool swap fee manipulations.
+    address public constant DELEGATE_OWNER = 0xBA1BA1ba1BA1bA1bA1Ba1BA1ba1BA1bA1ba1ba1B;
+    uint256 public constant DEFAULT_SWAP_FEE = 1e16;
+
     IRelayer public immutable relayer;
 
-    struct NewPoolParams {
-        string name;
-        string symbol;
-        IERC20[] tokens;
-        uint256[] normalizedWeights;
-        address[] assetManagers;
-        address owner;
-    }
-
-    constructor(
-        IVault vault,
-        IRelayer _relayer,
-        ISwapFeeController _swapFeeController
-    ) BasePoolSplitCodeFactory(vault, type(RelayedWeightedPool).creationCode) {
-        swapFeeController = _swapFeeController;
+    constructor(IVault vault, IRelayer _relayer)
+        BasePoolSplitCodeFactory(vault, type(RelayedWeightedPool).creationCode)
+    {
         relayer = _relayer;
     }
 
     /**
-     * @dev Deploys a new `ManagedPool`. The owner should be a managed pool controller, deployed by
-     * another factory.
+     * @dev Deploys a new `RelayedWeightedPool`.
      */
-    function create(NewPoolParams memory poolParams) external returns (address) {
+    function create(
+        string memory name,
+        string memory symbol,
+        IERC20[] memory tokens,
+        uint256[] memory weights,
+        address[] memory assetManagers
+    ) external returns (address) {
         (uint256 pauseWindowDuration, uint256 bufferPeriodDuration) = getPauseConfiguration();
 
         RelayedWeightedPool pool = RelayedWeightedPool(
             _create(
                 abi.encode(
-                    RelayedWeightedPool.NewPoolParams({
-                        vault: getVault(),
-                        name: poolParams.name,
-                        symbol: poolParams.symbol,
-                        tokens: poolParams.tokens,
-                        normalizedWeights: poolParams.normalizedWeights,
-                        assetManagers: poolParams.assetManagers,
-                        swapFeePercentage: swapFeeController.maxSwapFeePercentage(),
-                        pauseWindowDuration: pauseWindowDuration,
-                        bufferPeriodDuration: bufferPeriodDuration,
-                        owner: poolParams.owner,
-                        relayer: relayer,
-                        swapFeeController: swapFeeController
-                    })
+                    getVault(),
+                    name,
+                    symbol,
+                    tokens,
+                    weights,
+                    assetManagers,
+                    DEFAULT_SWAP_FEE,
+                    pauseWindowDuration,
+                    bufferPeriodDuration,
+                    DELEGATE_OWNER,
+                    relayer
                 )
             )
         );
-        _initializeAssetManagers(poolParams.assetManagers, pool.getPoolId());
+        _initializeAssetManagers(assetManagers, pool.getPoolId());
         return address(pool);
     }
 
