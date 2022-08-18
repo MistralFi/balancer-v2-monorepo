@@ -313,6 +313,10 @@ export default class WeightedPool extends BasePool {
     return this.join(this._buildInitParams(params));
   }
 
+  async initRelayer(params: InitWeightedPool): Promise<ContractTransaction> {
+    return this.joinRelayer(this._buildInitParams(params));
+  }
+
   async joinGivenIn(params: JoinGivenInWeightedPool): Promise<JoinResult> {
     return this.join(this._buildJoinGivenInParams(params));
   }

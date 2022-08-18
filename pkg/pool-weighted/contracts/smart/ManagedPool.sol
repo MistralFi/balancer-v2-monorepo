@@ -186,8 +186,7 @@ contract ManagedPool is BaseWeightedPool, ProtocolFeeCache, AumProtocolFeeCache,
         IVault vault,
         address owner,
         uint256 pauseWindowDuration,
-        uint256 bufferPeriodDuration,
-        ISwapFeeController swapFeeController
+        uint256 bufferPeriodDuration
     )
         BaseWeightedPool(
             vault,
@@ -199,8 +198,7 @@ contract ManagedPool is BaseWeightedPool, ProtocolFeeCache, AumProtocolFeeCache,
             pauseWindowDuration,
             bufferPeriodDuration,
             owner,
-            true,
-            swapFeeController
+            true
         )
         ProtocolFeeCache(vault, params.protocolSwapFeePercentage)
         AumProtocolFeeCache(params.aumProtocolFeesCollector)
@@ -469,7 +467,7 @@ contract ManagedPool is BaseWeightedPool, ProtocolFeeCache, AumProtocolFeeCache,
         _startGradualSwapFeeChange(startTime, endTime, startSwapFeePercentage, endSwapFeePercentage);
     }
 
-    function _validateSwapFeePercentage(uint256 swapFeePercentage) private view {
+    function _validateSwapFeePercentage(uint256 swapFeePercentage) private pure {
         _require(swapFeePercentage >= _getMinSwapFeePercentage(), Errors.MIN_SWAP_FEE_PERCENTAGE);
         _require(swapFeePercentage <= _getMaxSwapFeePercentage(), Errors.MAX_SWAP_FEE_PERCENTAGE);
     }

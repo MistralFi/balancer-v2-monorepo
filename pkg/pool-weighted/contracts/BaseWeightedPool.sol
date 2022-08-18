@@ -20,7 +20,7 @@ import "@balancer-labs/v2-interfaces/contracts/pool-weighted/WeightedPoolUserDat
 import "@balancer-labs/v2-solidity-utils/contracts/math/FixedPoint.sol";
 import "@balancer-labs/v2-solidity-utils/contracts/helpers/InputHelpers.sol";
 
-import "@balancer-labs/v2-pool-utils/contracts/SFCBaseMinimalSwapInfoPool.sol";
+import "@balancer-labs/v2-pool-utils/contracts/BaseMinimalSwapInfoPool.sol";
 
 import "./WeightedMath.sol";
 
@@ -29,7 +29,7 @@ import "./WeightedMath.sol";
  * the weights to subclasses. Derived contracts can choose to make weights immutable, mutable, or even dynamic
  *  based on local or external logic.
  */
-abstract contract BaseWeightedPool is SFCBaseMinimalSwapInfoPool {
+abstract contract BaseWeightedPool is BaseMinimalSwapInfoPool {
     using FixedPoint for uint256;
     using WeightedPoolUserData for bytes;
 
@@ -43,10 +43,9 @@ abstract contract BaseWeightedPool is SFCBaseMinimalSwapInfoPool {
         uint256 pauseWindowDuration,
         uint256 bufferPeriodDuration,
         address owner,
-        bool mutableTokens,
-        ISwapFeeController swapFeeController
+        bool mutableTokens
     )
-        SwapFeeControllableBasePool(
+        BasePool(
             vault,
             // Given BaseMinimalSwapInfoPool supports both of these specializations, and this Pool never registers
             // or deregisters any tokens after construction, picking Two Token when the Pool only has two tokens is free
@@ -63,8 +62,7 @@ abstract contract BaseWeightedPool is SFCBaseMinimalSwapInfoPool {
             swapFeePercentage,
             pauseWindowDuration,
             bufferPeriodDuration,
-            owner,
-            swapFeeController
+            owner
         )
     {
         // solhint-disable-previous-line no-empty-blocks

@@ -11,13 +11,11 @@ import {
   ManagedPoolParams,
   ManagedPoolRights,
   RawWeightedPoolDeployment,
-  RelayedWeightedPoolParams,
   WeightedPoolDeployment,
   WeightedPoolType,
 } from './types';
 import { ZERO_ADDRESS } from '@balancer-labs/v2-helpers/src/constants';
 import { DAY } from '@balancer-labs/v2-helpers/src/time';
-import { fp } from '../../../numbers';
 import WeightedPool from './WeightedPool';
 
 const NAME = 'Balancer Pool Token';
@@ -27,17 +25,11 @@ export default {
   async deploy(params: RawWeightedPoolDeployment): Promise<WeightedPool> {
     const deployment = TypesConverter.toWeightedPoolDeployment(params);
     const vault = params?.vault ?? (await VaultDeployer.deploy(TypesConverter.toRawVaultDeployment(params)));
-    const swapFeeController =
-      params?.swapFeeController ??
-      (await deploy('v2-pool-utils/swapfees/SwapFeeController', {
-        args: [vault.address, fp(0.01), fp(0.0001), fp(0.0004), fp(0.0025)],
-      }));
     const relayer = await deploy('v2-asset-manager-utils/Relayer', { args: [vault.address], from: params.from });
 
     const pool = await (params.fromFactory ? this._deployFromFactory : this._deployStandalone)(
       deployment,
       vault,
-      swapFeeController,
       relayer
     );
     const poolId = await pool.getPoolId();
@@ -75,12 +67,7 @@ export default {
     );
   },
 
-  async _deployStandalone(
-    params: WeightedPoolDeployment,
-    vault: Vault,
-    swapFeeController: Contract,
-    relayer: Contract
-  ): Promise<Contract> {
+  async _deployStandalone(params: WeightedPoolDeployment, vault: Vault, relayer: Contract): Promise<Contract> {
     const {
       tokens,
       weights,
@@ -103,23 +90,19 @@ export default {
 
     switch (poolType) {
       case WeightedPoolType.RELAYED_WEIGHTED_POOL: {
-        const newPoolParams: RelayedWeightedPoolParams = {
-          vault: vault.address,
-          name: NAME,
-          symbol: SYMBOL,
-          tokens: tokens.addresses,
-          normalizedWeights: weights,
-          assetManagers: Array(tokens.length).fill(ZERO_ADDRESS),
-          swapFeePercentage: swapFeePercentage,
-          pauseWindowDuration: pauseWindowDuration,
-          bufferPeriodDuration: bufferPeriodDuration,
-          owner: TypesConverter.toAddress(owner),
-          relayer: relayer.address,
-          swapFeeController: swapFeeController.address,
-        };
-
         result = deploy('v2-pool-weighted/RelayedWeightedPool', {
-          args: [newPoolParams],
+          args: [
+            vault.address,
+            NAME,
+            SYMBOL,
+            tokens.addresses,
+            weights,
+            swapFeePercentage,
+            pauseWindowDuration,
+            bufferPeriodDuration,
+            TypesConverter.toAddress(owner),
+            relayer.address,
+          ],
           from,
         });
         break;
@@ -137,7 +120,6 @@ export default {
             bufferPeriodDuration,
             TypesConverter.toAddress(owner),
             swapEnabledOnStart,
-            swapFeeController.address,
           ],
           from,
         });
@@ -164,7 +146,6 @@ export default {
             owner,
             pauseWindowDuration,
             bufferPeriodDuration,
-            swapFeeController.address,
           ],
           from,
         });
@@ -183,7 +164,6 @@ export default {
             pauseWindowDuration,
             bufferPeriodDuration,
             owner,
-            swapFeeController.address,
           ],
           from,
         });
@@ -193,12 +173,7 @@ export default {
     return result;
   },
 
-  async _deployFromFactory(
-    params: WeightedPoolDeployment,
-    vault: Vault,
-    swapFeeController: Contract,
-    relayer: Contract
-  ): Promise<Contract> {
+  async _deployFromFactory(params: WeightedPoolDeployment, vault: Vault, relayer: Contract): Promise<Contract> {
     const {
       tokens,
       weights,
@@ -220,30 +195,27 @@ export default {
     switch (poolType) {
       case WeightedPoolType.RELAYED_WEIGHTED_POOL: {
         //todo add factory.
-        const newPoolParams: RelayedWeightedPoolParams = {
-          vault: vault.address,
-          name: NAME,
-          symbol: SYMBOL,
-          tokens: tokens.addresses,
-          normalizedWeights: weights,
-          assetManagers: assetManagers,
-          swapFeePercentage: swapFeePercentage,
-          pauseWindowDuration: 0,
-          bufferPeriodDuration: 0,
-          owner: TypesConverter.toAddress(owner),
-          relayer: relayer.address,
-          swapFeeController: swapFeeController.address,
-        };
-
         result = deploy('v2-pool-weighted/RelayedWeightedPool', {
-          args: [newPoolParams],
+          args: [
+            vault.address,
+            NAME,
+            SYMBOL,
+            tokens.addresses,
+            weights,
+            assetManagers,
+            swapFeePercentage,
+            0,
+            0,
+            TypesConverter.toAddress(owner),
+            relayer.address,
+          ],
           from,
         });
         break;
       }
       case WeightedPoolType.LIQUIDITY_BOOTSTRAPPING_POOL: {
         const factory = await deploy('v2-pool-weighted/LiquidityBootstrappingPoolFactory', {
-          args: [vault.address, swapFeeController.address],
+          args: [vault.address],
           from,
         });
         const tx = await factory.create(
@@ -262,7 +234,7 @@ export default {
       }
       case WeightedPoolType.MANAGED_POOL: {
         const baseFactory = await deploy('v2-pool-weighted/BaseManagedPoolFactory', {
-          args: [vault.address, swapFeeController.address],
+          args: [vault.address],
           from,
         });
 
@@ -311,7 +283,7 @@ export default {
       }
       default: {
         const factory = await deploy('v2-pool-weighted/WeightedPoolFactory', {
-          args: [vault.address, swapFeeController.address],
+          args: [vault.address],
           from,
         });
         const tx = await factory.create(

@@ -15,95 +15,39 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "./WeightedPool.sol";
-import "@balancer-labs/v2-interfaces/contracts/pool-utils/IRelayedBasePool.sol";
+import "@balancer-labs/v2-pool-utils/contracts/RelayedBasePool.sol";
 import "@balancer-labs/v2-interfaces/contracts/pool-weighted/WeightedPoolUserData.sol";
+import "./WeightedPool.sol";
 
 /// @title RelayedWeightedPool
 /// @dev RelayedWeightedPool is a extension of standard Balancer's Weighted pool with restricted joinPool and exitPool
 ///      Those methods should be called by the Relayer only to allow usage of Asset managers (rebalancing logic)
-contract RelayedWeightedPool is WeightedPool, IRelayedBasePool {
-    using WeightedPoolUserData for bytes;
-
-    IBasePoolRelayer internal immutable _relayer;
-
-    modifier ensureRelayerEnterCall(bytes32 poolId, bytes calldata userData) {
-        WeightedPoolUserData.JoinKind kind = userData.joinKind();
-        if (kind != WeightedPoolUserData.JoinKind.INIT) {
-            require(_relayer.hasCalledPool(poolId), "Only relayer can join pool");
-        }
-        _;
-    }
-
-    modifier ensureRelayerExitCall(bytes32 poolId) {
-        require(_relayer.hasCalledPool(poolId), "Only relayer can exit pool");
-        _;
-    }
-
-    // The constructor arguments are received in a struct to work around stack-too-deep issues
-    struct NewPoolParams {
-        IVault vault;
-        string name;
-        string symbol;
-        IERC20[] tokens;
-        uint256[] normalizedWeights;
-        address[] assetManagers;
-        uint256 swapFeePercentage;
-        uint256 pauseWindowDuration;
-        uint256 bufferPeriodDuration;
-        address owner;
-        IBasePoolRelayer relayer;
-        ISwapFeeController swapFeeController;
-    }
-
-    constructor(NewPoolParams memory params)
+contract RelayedWeightedPool is WeightedPool, RelayedBasePool {
+    constructor(
+        IVault vault,
+        string memory name,
+        string memory symbol,
+        IERC20[] memory tokens,
+        uint256[] memory normalizedWeights,
+        address[] memory assetManagers,
+        uint256 swapFeePercentage,
+        uint256 pauseWindowDuration,
+        uint256 bufferPeriodDuration,
+        address owner,
+        IBasePoolRelayer relayer
+    )
         WeightedPool(
-            params.vault,
-            params.name,
-            params.symbol,
-            params.tokens,
-            params.normalizedWeights,
-            params.assetManagers,
-            params.swapFeePercentage,
-            params.pauseWindowDuration,
-            params.bufferPeriodDuration,
-            params.owner,
-            params.swapFeeController
+            vault,
+            name,
+            symbol,
+            tokens,
+            normalizedWeights,
+            assetManagers,
+            swapFeePercentage,
+            pauseWindowDuration,
+            bufferPeriodDuration,
+            owner
         )
-    {
-        _relayer = params.relayer;
-    }
-
-    /// @dev returns relayer attached to this pool
-    function getRelayer() public view override returns (IBasePoolRelayer) {
-        return _relayer;
-    }
-
-    /// @dev hook to restrict direct joinPool requests. Only Relayer can join this pool
-    function onJoinPool(
-        bytes32 poolId,
-        address sender,
-        address recipient,
-        uint256[] memory balances,
-        uint256 lastChangeBlock,
-        uint256 protocolSwapFeePercentage,
-        bytes calldata userData
-    ) public virtual override ensureRelayerEnterCall(poolId, userData) returns (uint256[] memory, uint256[] memory) {
-        return
-            super.onJoinPool(poolId, sender, recipient, balances, lastChangeBlock, protocolSwapFeePercentage, userData);
-    }
-
-    /// @dev hook to restrict direct exitPool requests. Only Relayer can exit from this pool
-    function onExitPool(
-        bytes32 poolId,
-        address sender,
-        address recipient,
-        uint256[] memory balances,
-        uint256 lastChangeBlock,
-        uint256 protocolSwapFeePercentage,
-        bytes calldata userData
-    ) public virtual override ensureRelayerExitCall(poolId) returns (uint256[] memory, uint256[] memory) {
-        return
-            super.onExitPool(poolId, sender, recipient, balances, lastChangeBlock, protocolSwapFeePercentage, userData);
-    }
+        RelayedBasePool(relayer)
+    {}
 }

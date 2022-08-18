@@ -15,7 +15,6 @@ describe('LiquidityBootstrappingPoolFactory', function () {
   let tokens: TokenList;
   let factory: Contract;
   let vault: Vault;
-  let swapFeeController: Contract;
 
   const NAME = 'Balancer Pool Token';
   const SYMBOL = 'BPT';
@@ -29,10 +28,8 @@ describe('LiquidityBootstrappingPoolFactory', function () {
 
   sharedBeforeEach('deploy factory & tokens', async () => {
     vault = await Vault.create();
-    swapFeeController = await deploy('v2-pool-utils/swapfees/SwapFeeController', {
-      args: [vault.address, fp(0.01), fp(0.0001), fp(0.0004), fp(0.0025)],
-    });
-    factory = await deploy('LiquidityBootstrappingPoolFactory', { args: [vault.address, swapFeeController.address] });
+
+    factory = await deploy('LiquidityBootstrappingPoolFactory', { args: [vault.address] });
     createTime = await currentTimestamp();
 
     tokens = await TokenList.create(['MKR', 'DAI', 'SNX', 'BAT'], { sorted: true });
@@ -107,11 +104,6 @@ describe('LiquidityBootstrappingPoolFactory', function () {
       const pool = await createPool(false);
 
       expect(await pool.getSwapEnabled()).to.be.false;
-    });
-
-    it('sets the swapFeeController', async () => {
-      const pool = await createPool();
-      expect(await pool.getSwapFeeController()).to.equal(swapFeeController.address);
     });
   });
 });

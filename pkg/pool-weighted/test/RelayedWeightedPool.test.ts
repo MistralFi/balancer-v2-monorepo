@@ -58,6 +58,11 @@ describe('RelayedWeightedPool tests', function () {
     await relayedWeightedPool.vault.instance
       .connect(user)
       .setRelayerApproval(user.address, relayedWeightedPool.relayer.address, true);
+    await relayedWeightedPool.vault.instance.setRelayerApproval(
+      deployer.address,
+      relayedWeightedPool.relayer.address,
+      true
+    );
   });
 
   describe('General tests', function () {
@@ -68,14 +73,14 @@ describe('RelayedWeightedPool tests', function () {
     });
 
     it('Owner can initialize relayedWeightedPool', async function () {
-      await relayedWeightedPool.init({ recipient, initialBalances });
+      await relayedWeightedPool.initRelayer({ recipient, initialBalances });
       const tokenInfo = await relayedWeightedPool.vault.getPoolTokenInfo(relayedWeightedPool.poolId, tokens.first);
       expect(tokenInfo.cash).is.eq(initialBalances[0]);
       expect(tokenInfo.managed).is.eq(0);
     });
 
     it('User should be able to join/exit via Relayer', async function () {
-      await relayedWeightedPool.init({ recipient: deployer, initialBalances: initialBalances });
+      await relayedWeightedPool.initRelayer({ recipient: deployer, initialBalances: initialBalances });
 
       const amountsIn = [fp(1), fp(1)];
       const minimumBptOut = bn(0);
@@ -97,19 +102,19 @@ describe('RelayedWeightedPool tests', function () {
     });
 
     it('Only Relayer should be able to join', async function () {
-      await relayedWeightedPool.init({ recipient: deployer, initialBalances: initialBalances });
+      await relayedWeightedPool.initRelayer({ recipient: deployer, initialBalances: initialBalances });
       const amountsIn = [fp(1), fp(1)];
       const minimumBptOut = bn(0);
       await expect(
         relayedWeightedPool.joinGivenIn({ amountsIn, minimumBptOut, recipient: user, from: user })
-      ).is.revertedWith('Only relayer can join pool');
+      ).is.revertedWith('BASE_POOL_RELAYER_NOT_CALLED');
     });
 
     it('Only Relayer should be able to exit', async function () {
-      await relayedWeightedPool.init({ recipient: deployer, initialBalances: initialBalances });
+      await relayedWeightedPool.initRelayer({ recipient: deployer, initialBalances: initialBalances });
       const bptBalance = await relayedWeightedPool.balanceOf(deployer.address);
       await expect(relayedWeightedPool.multiExitGivenIn({ from: deployer, bptIn: bptBalance })).is.revertedWith(
-        'Only relayer can exit pool'
+        'BASE_POOL_RELAYER_NOT_CALLED'
       );
     });
 

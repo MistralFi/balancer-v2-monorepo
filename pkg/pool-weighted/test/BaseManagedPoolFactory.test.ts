@@ -18,7 +18,6 @@ describe('BaseManagedPoolFactory', function () {
   let tokens: TokenList;
   let factory: Contract;
   let vault: Vault;
-  let swapFeeController: Contract;
   let admin: SignerWithAddress;
   let manager: SignerWithAddress;
   let assetManager: SignerWithAddress;
@@ -42,10 +41,8 @@ describe('BaseManagedPoolFactory', function () {
 
   sharedBeforeEach('deploy factory & tokens', async () => {
     vault = await Vault.create({ admin });
-    swapFeeController = await deploy('v2-pool-utils/swapfees/SwapFeeController', {
-      args: [vault.address, fp(0.01), fp(0.0001), fp(0.0004), fp(0.0025)],
-    });
-    factory = await deploy('BaseManagedPoolFactory', { args: [vault.address, swapFeeController.address] });
+
+    factory = await deploy('BaseManagedPoolFactory', { args: [vault.address] });
     createTime = await currentTimestamp();
 
     tokens = await TokenList.create(['MKR', 'DAI', 'SNX', 'BAT'], { sorted: true });

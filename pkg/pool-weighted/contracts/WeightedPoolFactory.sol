@@ -16,7 +16,6 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "@balancer-labs/v2-interfaces/contracts/vault/IVault.sol";
-import "@balancer-labs/v2-interfaces/contracts/vault/ISwapFeeController.sol";
 
 import "@balancer-labs/v2-pool-utils/contracts/factories/BasePoolSplitCodeFactory.sol";
 import "@balancer-labs/v2-pool-utils/contracts/factories/FactoryWidePauseWindow.sol";
@@ -24,12 +23,8 @@ import "@balancer-labs/v2-pool-utils/contracts/factories/FactoryWidePauseWindow.
 import "./WeightedPool.sol";
 
 contract WeightedPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow {
-    ISwapFeeController public immutable swapFeeController;
-
-    constructor(IVault vault, ISwapFeeController _swapFeeController)
-        BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode)
-    {
-        swapFeeController = _swapFeeController;
+    constructor(IVault vault) BasePoolSplitCodeFactory(vault, type(WeightedPool).creationCode) {
+        // solhint-disable-previous-line no-empty-blocks
     }
 
     /**
@@ -58,8 +53,7 @@ contract WeightedPoolFactory is BasePoolSplitCodeFactory, FactoryWidePauseWindow
                     swapFeePercentage,
                     pauseWindowDuration,
                     bufferPeriodDuration,
-                    owner,
-                    swapFeeController
+                    owner
                 )
             );
     }

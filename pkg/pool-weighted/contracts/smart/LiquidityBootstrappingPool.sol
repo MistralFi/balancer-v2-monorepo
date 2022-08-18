@@ -94,8 +94,7 @@ contract LiquidityBootstrappingPool is BaseWeightedPool, ReentrancyGuard {
         uint256 pauseWindowDuration,
         uint256 bufferPeriodDuration,
         address owner,
-        bool swapEnabledOnStart,
-        ISwapFeeController swapFeeController
+        bool swapEnabledOnStart
     )
         BaseWeightedPool(
             vault,
@@ -107,8 +106,7 @@ contract LiquidityBootstrappingPool is BaseWeightedPool, ReentrancyGuard {
             pauseWindowDuration,
             bufferPeriodDuration,
             owner,
-            false,
-            swapFeeController
+            false
         )
     {
         uint256 totalTokens = tokens.length;

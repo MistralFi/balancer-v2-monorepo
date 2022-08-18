@@ -10,6 +10,8 @@ import overrideQueryFunctions from '@balancer-labs/v2-helpers/plugins/overrideQu
 
 task(TASK_COMPILE).setAction(overrideQueryFunctions);
 
+require('hardhat-contract-sizer');
+
 export default {
   networks: {
     hardhat: {
