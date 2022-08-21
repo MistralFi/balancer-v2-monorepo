@@ -3,7 +3,7 @@ import '@nomiclabs/hardhat-waffle';
 
 import { hardhatBaseConfig } from '@balancer-labs/v2-common';
 import { name } from './package.json';
-
+import 'hardhat-local-networks-config-plugin';
 export default {
   solidity: {
     compilers: hardhatBaseConfig.compilers,
