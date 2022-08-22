@@ -98,8 +98,6 @@ interface IBasePool is IPoolSwapStructs {
      */
     function getSwapFeePercentage() external view returns (uint256);
 
-    function setAssetManagerPoolConfig(IERC20 token, bytes memory poolConfig) external;
-
     /**
      * @dev Returns the scaling factors of each of the Pool's tokens. This is an implementation detail that is typically
      * not relevant for outside parties, but which might be useful for some types of Pools.

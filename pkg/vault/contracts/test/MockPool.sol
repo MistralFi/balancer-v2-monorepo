@@ -176,6 +176,4 @@ contract MockPool is IGeneralPool, IMinimalSwapInfoPool {
     ) external pure override returns (uint256, uint256[] memory) {
         return (0, new uint256[](0));
     }
-
-    function setAssetManagerPoolConfig(IERC20 token, bytes memory poolConfig) public override {}
 }

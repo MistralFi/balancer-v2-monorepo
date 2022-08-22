@@ -1,12 +1,11 @@
 import { ethers } from 'hardhat';
-import { actionId } from '@balancer-labs/v2-helpers/src/models/misc/actions';
-import { bn, fp } from '@balancer-labs/v2-helpers/src/numbers';
+import { fp } from '@balancer-labs/v2-helpers/src/numbers';
 
 async function main() {
   const signer = (await ethers.getSigners())[0];
   console.log(`signer address: ${signer.address}`);
   const relayerAddress = '0xFe41681f459984A7B3cEF3DFE0423Fd93f589EAC';
-  const poolAddress = '0x6A78e7262cAff2EF5E446A9E0A44631203A4424A';
+  const poolAddress = '0xcad73bdf12AE30dCAce312460D46C3C2d8667174';
   const vaultAddress = '0x96D6795721B6ffDa88169D031b9FD4Dc26e29578';
 
   const pool = await ethers.getContractAt('IBasePool', poolAddress);
