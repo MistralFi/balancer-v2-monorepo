@@ -19,6 +19,7 @@
   "scripts": {
     "build": "yarn compile",
     "compile": "hardhat compile && rm -rf artifacts/build-info",
+    "compile_depl": "hardhat compile",
     "compile:watch": "nodemon --ext sol --exec yarn compile",
     "lint": "yarn lint:solidity && yarn lint:typescript",
     "lint:solidity": "solhint 'contracts/**/*.sol'",
@@ -52,6 +53,7 @@
     "ethers": "^5.4.1",
     "hardhat": "^2.8.3",
     "hardhat-contract-sizer": "^2.5.1",
+    "hardhat-local-networks-config-plugin": "0.0.5",
     "lodash.frompairs": "^4.0.1",
     "lodash.pick": "^4.4.0",
     "lodash.range": "^3.2.0",
