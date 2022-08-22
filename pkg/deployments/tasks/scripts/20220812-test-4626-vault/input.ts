@@ -1,4 +1,3 @@
-import { ZERO_ADDRESS } from '@balancer-labs/v2-helpers/src/constants';
 import Task, { TaskMode } from '../../../src/task';
 
 export type MockVaultDeployment = {
@@ -19,6 +18,6 @@ export default {
     symbol: '4626-USDC',
     isReturnShares: true,
     isReturnTokens: true,
-    vaultFeeCollector: ZERO_ADDRESS,
+    vaultFeeCollector: '0xaBa49c1098Cc0FA65bF2393822Ae8A350019f374',
   },
 };
