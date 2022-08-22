@@ -1,6 +1,4 @@
 import { ethers } from 'hardhat';
-import { actionId } from '@balancer-labs/v2-helpers/src/models/misc/actions';
-import { bn, fp } from '@balancer-labs/v2-helpers/src/numbers';
 
 async function main() {
   const signer = (await ethers.getSigners())[0];

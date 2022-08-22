@@ -24,7 +24,6 @@ describe('RelayedWeightedPoolFactory', function () {
   let assetManager: Contract,
     deployer: SignerWithAddress,
     poolOwner: SignerWithAddress,
-    owner: SignerWithAddress,
     vaultFeeCollector: SignerWithAddress;
 
   const NAME = 'Balancer Pool Token';
@@ -38,7 +37,7 @@ describe('RelayedWeightedPoolFactory', function () {
   let createTime: BigNumber;
 
   before('setup signers', async () => {
-    [deployer, poolOwner, owner, vaultFeeCollector] = await ethers.getSigners();
+    [deployer, poolOwner, , vaultFeeCollector] = await ethers.getSigners();
   });
 
   sharedBeforeEach('deploy factory & tokens', async () => {

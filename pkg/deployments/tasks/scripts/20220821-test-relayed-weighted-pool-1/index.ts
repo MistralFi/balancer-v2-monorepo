@@ -2,7 +2,6 @@ import { RelayedWeightedPoolDeployment } from './input';
 import Task from '../../../src/task';
 import { TaskRunOptions } from '../../../src/types';
 
-
 export default async (task: Task, { force, from }: TaskRunOptions = {}): Promise<void> => {
   const input = task.input() as RelayedWeightedPoolDeployment;
   const args = [
