@@ -17,9 +17,6 @@ export default async (task: Task, { force, from }: TaskRunOptions = {}): Promise
     input.Owner,
     input.Relayer,
   ];
-  console.log(input.Tokens[0]);
-  console.log(input.Tokens[1]);
-  console.log(input.Tokens[2]);
 
   await task.deploy('RelayedWeightedPool', args, from, force);
 };
