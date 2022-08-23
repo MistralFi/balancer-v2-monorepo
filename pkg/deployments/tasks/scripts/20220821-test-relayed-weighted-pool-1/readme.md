@@ -1,8 +1,8 @@
-# 2022-08-14 relayed-weighted-pool-factory
+# 2022-08-21 relayed-weighted-pool
 
-relayed-weighted-pool-factory factory for producing relayed-weighted-pools
+Test Mistral-oUSDC-KDAI relayed pool with AM connected to IERC4626 vault.
 
 ## Useful Files
 
 - [Klaytn baobab (testnet) address](./output/baobab.json)
-- [`RelayedWeightedPoolFactory` ABI](./abi/RelayedWeightedPoolFactory.json)
+- [`RelayedWeightedPool` ABI](./abi/RelayedWeightedPool.json)
