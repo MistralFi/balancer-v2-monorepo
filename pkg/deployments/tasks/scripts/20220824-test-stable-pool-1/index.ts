@@ -1,4 +1,4 @@
-import { StablePoolDeployment} from './input';
+import { StablePoolDeployment } from './input';
 import Task from '../../../src/task';
 import { TaskRunOptions } from '../../../src/types';
 
