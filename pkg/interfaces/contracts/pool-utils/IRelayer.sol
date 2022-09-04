@@ -21,7 +21,7 @@ import "../vault/IVault.sol";
 interface IRelayer is IBasePoolRelayer {
     function claimAssetManagerRewards(bytes32 poolId) external;
 
-    function vault() external returns(IVault);
+    function vault() external returns (IVault);
 
     function joinPool(
         bytes32 poolId,
