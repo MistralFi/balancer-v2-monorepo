@@ -43,7 +43,7 @@ contract Relayer is IRelayer, AssetHelpers {
     //                VARIABLES
     // ***************************************************
 
-    IVault public immutable vault;
+    IVault public immutable override vault;
     bytes32 internal _calledPool;
 
     // ***************************************************
@@ -101,7 +101,7 @@ contract Relayer is IRelayer, AssetHelpers {
         bytes32 poolId,
         address recipient,
         IVault.JoinPoolRequest memory request
-    ) external payable rebalance(poolId, request.assets, new uint256[](request.assets.length)) {
+    ) external payable override rebalance(poolId, request.assets, new uint256[](request.assets.length)) {
         vault.joinPool{ value: msg.value }(poolId, msg.sender, recipient, request);
 
         // Send back to the sender any remaining ETH value
@@ -119,7 +119,7 @@ contract Relayer is IRelayer, AssetHelpers {
         address payable recipient,
         IVault.ExitPoolRequest memory request,
         uint256[] memory minCashBalances
-    ) external rebalance(poolId, request.assets, minCashBalances) {
+    ) external override rebalance(poolId, request.assets, minCashBalances) {
         vault.exitPool(poolId, msg.sender, recipient, request);
     }
 
