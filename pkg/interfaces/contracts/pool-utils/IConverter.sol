@@ -13,26 +13,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pragma solidity ^0.7.0;
-pragma experimental ABIEncoderV2;
 
-import "./IBasePoolRelayer.sol";
-import "../vault/IVault.sol";
-
-interface IRelayer is IBasePoolRelayer {
-    function claimAssetManagerRewards(bytes32 poolId) external;
-
-    function vault() external returns(IVault);
-
-    function joinPool(
-        bytes32 poolId,
-        address recipient,
-        IVault.JoinPoolRequest memory request
-    ) external payable;
-
-    function exitPool(
-        bytes32 poolId,
-        address payable recipient,
-        IVault.ExitPoolRequest memory request,
-        uint256[] memory minCashBalances
-    ) external;
+interface IConverter {
+    function convert(
+        address token,
+        uint256 amount,
+        address recipient
+    ) external returns (address resultToken);
 }

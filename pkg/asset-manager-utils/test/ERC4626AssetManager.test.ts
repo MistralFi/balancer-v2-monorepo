@@ -428,27 +428,5 @@ describe('ERC4626AssetManager tests', function () {
       const feeCollectorBalAfter = await rt.balanceOf(feeForwarder.address);
       expect(feeCollectorBalAfter).is.eq(feeCollectorBalBefore);
     });
-
-    it('test RelayerJoiner', async () => {
-      const relJoiner = await deploy('TestRelayerJoiner', {
-        args: [tokens.first.address, poolId, relayer.address],
-      });
-      const action = await actionId(vault.instance, 'joinPool');
-
-      if (vault.authorizer) {
-        await vault.authorizer.grantPermissions([action], relayer.address, [ANY_ADDRESS]);
-      }
-      const res1 = await Promise.all([vault.getPoolTokens(poolId)]);
-      console.log(`tokens: ${res1[0]}`);
-
-      await tokens.first.mint(relJoiner.address, fp(100));
-      await tokens.second.mint(relJoiner.address, fp(100));
-      const balBefore = await pool.balanceOf(relJoiner.address);
-      await relJoiner.convertToBPT(tokens.first.address);
-      const balAfter = await pool.balanceOf(relJoiner.address);
-      expect(balAfter).is.gt(balBefore);
-      const res2 = await Promise.all([vault.getPoolTokens(poolId)]);
-      console.log(`tokens: ${res2[0]}`);
-    });
   });
 });
