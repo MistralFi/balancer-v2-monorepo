@@ -19,20 +19,20 @@ import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/ERC20.sol";
 import "@balancer-labs/v2-interfaces/contracts/pool-utils/ILiquidator.sol";
 
 contract MockLiquidator is ILiquidator {
-    uint256 price = 100_000 * 1e18;
-    string error = "";
-    uint256 routeLength = 1;
+    uint256 _price = 100_000 * 1e18;
+    string _error = "";
+    uint256 _routeLength = 1;
 
     function setPrice(uint256 value) external {
-        price = value;
+        _price = value;
     }
 
     function setError(string memory value) external {
-        error = value;
+        _error = value;
     }
 
     function setRouteLength(uint256 value) external {
-        routeLength = value;
+        _routeLength = value;
     }
 
     function getPrice(
@@ -40,11 +40,11 @@ contract MockLiquidator is ILiquidator {
         address,
         uint256
     ) external view override returns (uint256) {
-        return price;
+        return _price;
     }
 
     function getPriceForRoute(PoolData[] memory, uint256) external view override returns (uint256) {
-        return price;
+        return _price;
     }
 
     function isRouteExist(address, address) external pure override returns (bool) {
@@ -57,14 +57,14 @@ contract MockLiquidator is ILiquidator {
         override
         returns (PoolData[] memory route, string memory errorMessage)
     {
-        if (routeLength == 1) {
+        if (_routeLength == 1) {
             route = new PoolData[](1);
             route[0].tokenIn = tokenIn;
             route[0].tokenOut = tokenOut;
         } else {
             route = new PoolData[](0);
         }
-        return (route, error);
+        return (route, _error);
     }
 
     function liquidate(
