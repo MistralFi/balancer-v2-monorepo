@@ -58,7 +58,8 @@ export default {
       protocolSwapFeePercentage,
       managementSwapFeePercentage,
       managementAumFeePercentage,
-      aumProtocolFeesCollector
+      aumProtocolFeesCollector,
+      vault.instance //todo fix
     );
   },
 

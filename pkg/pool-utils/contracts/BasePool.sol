@@ -320,7 +320,7 @@ abstract contract BasePool is
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes memory userData
-    ) external override onlyVault(poolId) returns (uint256[] memory, uint256[] memory) {
+    ) public virtual override onlyVault(poolId) returns (uint256[] memory, uint256[] memory) {
         _beforeSwapJoinExit();
 
         uint256[] memory scalingFactors = _scalingFactors();
@@ -382,7 +382,7 @@ abstract contract BasePool is
         uint256 lastChangeBlock,
         uint256 protocolSwapFeePercentage,
         bytes memory userData
-    ) external override onlyVault(poolId) returns (uint256[] memory, uint256[] memory) {
+    ) public virtual override onlyVault(poolId) returns (uint256[] memory, uint256[] memory) {
         uint256[] memory amountsOut;
         uint256 bptAmountIn;
 

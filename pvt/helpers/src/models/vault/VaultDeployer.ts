@@ -20,7 +20,8 @@ export default {
     if (!admin) admin = from || (await ethers.getSigners())[0];
 
     const authorizer = await this._deployAuthorizer(admin, from);
-    const vault = await (mocked ? this._deployMocked : this._deployReal)(deployment, authorizer);
+    const feeForwarder = await this._deployFeeForwarder(from);
+    const vault = await (mocked ? this._deployMocked : this._deployReal)(deployment, authorizer, feeForwarder);
     const protocolFeeProvider = await this._deployProtocolFeeProvider(
       vault,
       deployment.maxYieldValue,
@@ -29,15 +30,15 @@ export default {
     return new Vault(mocked, vault, authorizer, protocolFeeProvider, admin);
   },
 
-  async _deployReal(deployment: VaultDeployment, authorizer: Contract): Promise<Contract> {
+  async _deployReal(deployment: VaultDeployment, authorizer: Contract, feeForwarder: Contract): Promise<Contract> {
     const { from, pauseWindowDuration, bufferPeriodDuration } = deployment;
     const weth = await TokensDeployer.deployToken({ symbol: 'WETH' });
-    const args = [authorizer.address, weth.address, pauseWindowDuration, bufferPeriodDuration];
+    const args = [authorizer.address, weth.address, pauseWindowDuration, bufferPeriodDuration, feeForwarder.address];
     return deploy('v2-vault/Vault', { args, from });
   },
 
-  async _deployMocked({ from }: VaultDeployment, authorizer: Contract): Promise<Contract> {
-    return deploy('v2-pool-utils/MockVault', { from, args: [authorizer.address] });
+  async _deployMocked({ from }: VaultDeployment, authorizer: Contract, feeForwarder: Contract): Promise<Contract> {
+    return deploy('v2-pool-utils/MockVault', { from, args: [authorizer.address, feeForwarder.address] });
   },
 
   async _deployAuthorizer(admin: SignerWithAddress, from?: SignerWithAddress): Promise<Contract> {
@@ -52,5 +53,9 @@ export default {
     return deploy('v2-standalone-utils/ProtocolFeePercentagesProvider', {
       args: [vault.address, maxYieldValue, maxAUMValue],
     });
+  },
+
+  async _deployFeeForwarder(from?: SignerWithAddress): Promise<Contract> {
+    return deploy('v2-vault/MockForwarder', { args: [], from });
   },
 };

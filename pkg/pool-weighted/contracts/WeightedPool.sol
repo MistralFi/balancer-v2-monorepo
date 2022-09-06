@@ -356,7 +356,7 @@ contract WeightedPool is BaseWeightedPool, WeightedPoolProtocolFees {
         return Math.mul(invariant, _getTotalTokens()).divDown(supply.add(protocolFeesToBeMinted));
     }
 
-    function _onDisableRecoveryMode() internal override {
+    function _onDisableRecoveryMode() internal virtual override {
         // Update the postJoinExitInvariant to the value of the currentInvariant, zeroing out any protocol swap fees.
         _updatePostJoinExit(getInvariant());
 

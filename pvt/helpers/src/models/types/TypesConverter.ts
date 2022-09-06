@@ -25,7 +25,6 @@ import {
   TokenDeployment,
   RawTokenDeployment,
 } from '../tokens/types';
-import { RawStablePoolDeployment, StablePoolDeployment } from '../pools/stable/types';
 
 export function computeDecimalsFromIndex(i: number): number {
   // Produces repeating series (18..0)
@@ -104,43 +103,6 @@ export default {
       owner: this.toAddress(params.owner),
       from: params.from,
       poolType,
-    };
-  },
-
-  toStablePoolDeployment(params: RawStablePoolDeployment): StablePoolDeployment {
-    let {
-      tokens,
-      rateProviders,
-      priceRateCacheDuration,
-      amplificationParameter,
-      swapFeePercentage,
-      pauseWindowDuration,
-      bufferPeriodDuration,
-      oracleEnabled,
-      meta,
-    } = params;
-
-    if (!tokens) tokens = new TokenList();
-    if (!rateProviders) rateProviders = Array(tokens.length).fill(ZERO_ADDRESS);
-    if (!priceRateCacheDuration) priceRateCacheDuration = Array(tokens.length).fill(DAY);
-    if (!amplificationParameter) amplificationParameter = bn(200);
-    if (!swapFeePercentage) swapFeePercentage = bn(1e12);
-    if (!pauseWindowDuration) pauseWindowDuration = 3 * MONTH;
-    if (!bufferPeriodDuration) bufferPeriodDuration = MONTH;
-    if (!oracleEnabled) oracleEnabled = true;
-    if (!meta) meta = false;
-
-    return {
-      tokens,
-      rateProviders,
-      priceRateCacheDuration,
-      amplificationParameter,
-      swapFeePercentage,
-      pauseWindowDuration,
-      bufferPeriodDuration,
-      oracleEnabled,
-      meta,
-      owner: params.owner,
     };
   },
 

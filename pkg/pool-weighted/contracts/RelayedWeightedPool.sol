@@ -24,30 +24,19 @@ import "./WeightedPool.sol";
 ///      Those methods should be called by the Relayer only to allow usage of Asset managers (rebalancing logic)
 contract RelayedWeightedPool is WeightedPool, RelayedBasePool {
     constructor(
+        WeightedPool.NewPoolParams memory params,
         IVault vault,
-        string memory name,
-        string memory symbol,
-        IERC20[] memory tokens,
-        uint256[] memory normalizedWeights,
-        address[] memory assetManagers,
-        uint256 swapFeePercentage,
+        IProtocolFeePercentagesProvider protocolFeeProvider,
         uint256 pauseWindowDuration,
         uint256 bufferPeriodDuration,
         address owner,
         IBasePoolRelayer relayer
     )
-        WeightedPool(
-            vault,
-            name,
-            symbol,
-            tokens,
-            normalizedWeights,
-            assetManagers,
-            swapFeePercentage,
-            pauseWindowDuration,
-            bufferPeriodDuration,
-            owner
-        )
+        WeightedPool(params, vault, protocolFeeProvider, pauseWindowDuration, bufferPeriodDuration, owner)
         RelayedBasePool(relayer)
     {}
+
+    function _onDisableRecoveryMode() internal override(WeightedPool, BasePool) {
+        super._onDisableRecoveryMode();
+    }
 }

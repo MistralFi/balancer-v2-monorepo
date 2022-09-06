@@ -140,7 +140,7 @@ contract ProtocolFeePercentagesProvider is IProtocolFeePercentagesProvider, Sing
         if (feeType == ProtocolFeeType.SWAP) {
             return _protocolFeesCollector.getSwapFeePercentage();
         } else if (feeType == ProtocolFeeType.FLASH_LOAN) {
-            return _protocolFeesCollector.getFlashLoanFeePercentage();
+            return _protocolFeesCollector.getFlashLoanFeePercentage(msg.sender);
         } else {
             return _feeTypeData[feeType].value;
         }
