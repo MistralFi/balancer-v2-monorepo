@@ -103,7 +103,7 @@ describe('BalancerQueries', function () {
       );
 
       expect(result[indexIn]).to.deep.equal(amount);
-      expect(result[indexOut].mul(-1)).to.be.equalWithError(expectedAmountOut, fp(0.00000000000000001));
+      expect(result[indexOut].mul(-1)).to.be.equalWithError(expectedAmountOut, 0.0001);
     });
 
     it('bubbles up revert reasons', async () => {

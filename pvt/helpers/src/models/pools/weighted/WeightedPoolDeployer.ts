@@ -25,7 +25,13 @@ export default {
   async deploy(params: RawWeightedPoolDeployment): Promise<WeightedPool> {
     const deployment = TypesConverter.toWeightedPoolDeployment(params);
     const vault = params?.vault ?? (await VaultDeployer.deploy(TypesConverter.toRawVaultDeployment(params)));
-    const pool = await (params.fromFactory ? this._deployFromFactory : this._deployStandalone)(deployment, vault);
+    const relayer = await deploy('v2-asset-manager-utils/Relayer', { args: [vault.address] });
+
+    const pool = await (params.fromFactory ? this._deployFromFactory : this._deployStandalone)(
+      deployment,
+      vault,
+      relayer
+    );
     const poolId = await pool.getPoolId();
 
     const {
@@ -59,11 +65,11 @@ export default {
       managementSwapFeePercentage,
       managementAumFeePercentage,
       aumProtocolFeesCollector,
-      vault.instance //todo fix
+      relayer
     );
   },
 
-  async _deployStandalone(params: WeightedPoolDeployment, vault: Vault): Promise<Contract> {
+  async _deployStandalone(params: WeightedPoolDeployment, vault: Vault, relayer: Contract): Promise<Contract> {
     const {
       tokens,
       weights,
@@ -86,6 +92,29 @@ export default {
     let result: Promise<Contract>;
 
     switch (poolType) {
+      case WeightedPoolType.RELAYED_WEIGHTED_POOL: {
+        result = deploy('v2-pool-weighted/RelayedWeightedPool', {
+          args: [
+            {
+              name: NAME,
+              symbol: SYMBOL,
+              tokens: tokens.addresses,
+              normalizedWeights: weights,
+              rateProviders: rateProviders,
+              assetManagers: assetManagers,
+              swapFeePercentage: swapFeePercentage,
+            },
+            vault.address,
+            vault.protocolFeesProvider.address,
+            pauseWindowDuration,
+            bufferPeriodDuration,
+            owner,
+            relayer.address,
+          ],
+          from,
+        });
+        break;
+      }
       case WeightedPoolType.LIQUIDITY_BOOTSTRAPPING_POOL: {
         result = deploy('v2-pool-weighted/LiquidityBootstrappingPool', {
           args: [
@@ -157,12 +186,12 @@ export default {
     return result;
   },
 
-  async _deployFromFactory(params: WeightedPoolDeployment, vault: Vault): Promise<Contract> {
-    // Note that we only support asset managers with the standalone deploy method.
+  async _deployFromFactory(params: WeightedPoolDeployment, vault: Vault, relayer: Contract): Promise<Contract> {
     const {
       tokens,
       weights,
       rateProviders,
+      assetManagers,
       swapFeePercentage,
       swapEnabledOnStart,
       mustAllowlistLPs,
@@ -177,6 +206,30 @@ export default {
     let result: Promise<Contract>;
 
     switch (poolType) {
+      case WeightedPoolType.RELAYED_WEIGHTED_POOL: {
+        //todo add factory.
+        result = deploy('v2-pool-weighted/RelayedWeightedPool', {
+          args: [
+            {
+              name: NAME,
+              symbol: SYMBOL,
+              tokens: tokens.addresses,
+              normalizedWeights: weights,
+              rateProviders: rateProviders,
+              assetManagers: assetManagers,
+              swapFeePercentage: swapFeePercentage,
+            },
+            vault.address,
+            vault.protocolFeesProvider.address,
+            0,
+            0,
+            owner,
+            relayer.address,
+          ],
+          from,
+        });
+        break;
+      }
       case WeightedPoolType.LIQUIDITY_BOOTSTRAPPING_POOL: {
         const factory = await deploy('v2-pool-weighted/LiquidityBootstrappingPoolFactory', {
           args: [vault.address, vault.getFeesProvider().address],
@@ -212,7 +265,7 @@ export default {
           symbol: SYMBOL,
           tokens: tokens.addresses,
           normalizedWeights: weights,
-          assetManagers: Array(tokens.length).fill(ZERO_ADDRESS),
+          assetManagers: assetManagers,
           swapFeePercentage: swapFeePercentage,
           swapEnabledOnStart: swapEnabledOnStart,
           mustAllowlistLPs: mustAllowlistLPs,

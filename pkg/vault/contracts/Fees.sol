@@ -27,22 +27,18 @@ import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/SafeERC20.sol";
 import "./ProtocolFeesCollector.sol";
 import "./VaultAuthorization.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @dev To reduce the bytecode size of the Vault, most of the protocol fee logic is not here, but in the
  * ProtocolFeesCollector contract.
  */
 abstract contract Fees is IVault {
     using SafeERC20 for IERC20;
-
-    IProtocolFeesCollector private immutable _protocolFeesCollector;
-    IForwarder private immutable _feeForwarder;
+    //todo make immutable
+    IProtocolFeesCollector private _protocolFeesCollector;
+    IForwarder private _feeForwarder;
 
     constructor(IForwarder feeForwarder) {
-        console.log("1");
         _protocolFeesCollector = new ProtocolFeesCollector(IVault(this));
-        console.log("2");
         _feeForwarder = feeForwarder;
     }
 
@@ -78,7 +74,6 @@ abstract contract Fees is IVault {
                 token.safeTransfer(address(_protocolFeesCollector), amount);
             } else {
                 token.safeTransfer(address(_feeForwarder), amount);
-
                 address[] memory tokens = new address[](1);
                 tokens[0] = address(token);
                 _feeForwarder.registerIncome(tokens, poolAddress);

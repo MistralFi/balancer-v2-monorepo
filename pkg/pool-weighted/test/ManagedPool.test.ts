@@ -2047,7 +2047,11 @@ describe('ManagedPool', function () {
       const WETH = await TokensDeployer.deployToken({ symbol: 'WETH' });
 
       authorizer = await deploy('v2-vault/TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
-      authorizedVault = await deploy('v2-vault/Vault', { args: [authorizer.address, WETH.address, MONTH, MONTH] });
+      const feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
+      authorizedVault = await deploy('v2-vault/Vault', {
+        args: [authorizer.address, WETH.address, MONTH, MONTH, feeForwarder.address],
+      });
+
       protocolFeesProvider = await deploy('v2-standalone-utils/ProtocolFeePercentagesProvider', {
         args: [authorizedVault.address, maxYieldValue, maxAUMValue],
       });
