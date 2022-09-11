@@ -31,13 +31,12 @@ describe('RebalancingRelayer', function () {
 
   before('setup signer', async () => {
     [, admin, sender, recipient] = await ethers.getSigners();
-  });
-
-  sharedBeforeEach('deploy relayer', async () => {
     const DAI = await Token.create('DAI');
     const WETH = await Token.create('WETH');
     tokens = new TokenList([DAI, WETH].sort());
+  });
 
+  sharedBeforeEach('deploy relayer', async () => {
     feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
     authorizer = await deploy('v2-vault/TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
     vault = await deploy('v2-vault/Vault', {
