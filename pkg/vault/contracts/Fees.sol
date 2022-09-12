@@ -33,7 +33,7 @@ import "./VaultAuthorization.sol";
  */
 abstract contract Fees is IVault {
     using SafeERC20 for IERC20;
-    //todo make immutable
+    //todo make immutable when size optimization will be applied
     IProtocolFeesCollector private _protocolFeesCollector;
     IForwarder private _feeForwarder;
 

@@ -7,6 +7,7 @@ import { name } from './package.json';
 import { task } from 'hardhat/config';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import overrideQueryFunctions from '@balancer-labs/v2-helpers/plugins/overrideQueryFunctions';
+require('hardhat-contract-sizer');
 
 task(TASK_COMPILE).setAction(overrideQueryFunctions);
 

@@ -7,6 +7,11 @@ import Token from '../../tokens/Token';
 import TokenList from '../../tokens/TokenList';
 import { Account, NAry } from '../../types/types';
 
+export enum StablePoolType {
+  STABLE_POOL = 0,
+  RELAYED_STABLE_POOL = 1,
+}
+
 export type SwapStablePool = {
   in: Token;
   out: Token;
@@ -124,6 +129,9 @@ export type RawStablePoolDeployment = {
   from?: SignerWithAddress;
   vault?: Vault;
   mockedVault?: boolean;
+  fromFactory?: boolean;
+  poolType?: StablePoolType;
+  assetManagers?: string[];
 };
 
 export type StablePoolDeployment = {
@@ -131,6 +139,7 @@ export type StablePoolDeployment = {
   swapFeePercentage: BigNumberish;
   amplificationParameter: BigNumberish;
   rateProviders: Account[];
+  assetManagers: string[];
   tokenRateCacheDurations: BigNumberish[];
   exemptFromYieldProtocolFeeFlags: boolean[];
   pauseWindowDuration?: BigNumberish;
@@ -138,4 +147,5 @@ export type StablePoolDeployment = {
   owner?: SignerWithAddress;
   admin?: SignerWithAddress;
   from?: SignerWithAddress;
+  poolType?: StablePoolType;
 };

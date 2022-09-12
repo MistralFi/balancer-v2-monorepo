@@ -24,7 +24,7 @@ contract MockForwarder is IForwarder {
         lastDestination = destination;
     }
 
-    function distribute(address token) external override {}
+//    function distribute(address token) external override {}
 
     //@dev this method in artificial and needed for tests backward computability with feesCollector contract
     function getCollectedFeeAmounts(IERC20[] memory tokens) external view returns (uint256[] memory feeAmounts) {

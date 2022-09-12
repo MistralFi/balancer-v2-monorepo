@@ -9,7 +9,7 @@ import TokenList from '../tokens/TokenList';
 import { Account } from './types';
 import { RawVaultDeployment, VaultDeployment } from '../vault/types';
 import { RawLinearPoolDeployment, LinearPoolDeployment } from '../pools/linear/types';
-import { RawStablePoolDeployment, StablePoolDeployment } from '../pools/stable/types';
+import { RawStablePoolDeployment, StablePoolDeployment, StablePoolType } from '../pools/stable/types';
 import {
   RawWeightedPoolDeployment,
   WeightedPoolDeployment,
@@ -43,7 +43,7 @@ export default {
     return { mocked, admin, pauseWindowDuration, bufferPeriodDuration, maxYieldValue, maxAUMValue };
   },
 
-  toRawVaultDeployment(params: RawWeightedPoolDeployment): RawVaultDeployment {
+  toRawVaultDeployment(params: RawWeightedPoolDeployment | RawStablePoolDeployment): RawVaultDeployment {
     let { admin, pauseWindowDuration, bufferPeriodDuration } = params;
     if (!admin) admin = params.from;
     if (!pauseWindowDuration) pauseWindowDuration = 0;
@@ -137,6 +137,8 @@ export default {
       swapFeePercentage,
       pauseWindowDuration,
       bufferPeriodDuration,
+      assetManagers: assetManagers,
+      poolType,
     } = params;
 
     if (!tokens) tokens = new TokenList();
@@ -146,8 +148,9 @@ export default {
     if (!swapFeePercentage) swapFeePercentage = bn(1e12);
     if (!pauseWindowDuration) pauseWindowDuration = 3 * MONTH;
     if (!bufferPeriodDuration) bufferPeriodDuration = MONTH;
+    if (!assetManagers) assetManagers = Array(tokens.length + 1).fill(ZERO_ADDRESS);
     if (!exemptFromYieldProtocolFeeFlags) exemptFromYieldProtocolFeeFlags = Array(tokens.length).fill(false);
-
+    if (!poolType) poolType = StablePoolType.STABLE_POOL;
     return {
       tokens,
       rateProviders,
@@ -158,6 +161,8 @@ export default {
       pauseWindowDuration,
       bufferPeriodDuration,
       owner: params.owner,
+      assetManagers: assetManagers,
+      poolType,
     };
   },
 

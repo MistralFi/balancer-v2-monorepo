@@ -42,12 +42,15 @@ import {
 } from './math';
 import BasePool from '../base/BasePool';
 import { currentTimestamp, DAY } from '../../../time';
+import { InitWeightedPool, JoinExitWeightedPool, JoinGivenInWeightedPool } from '../weighted/types';
 
 const PREMINTED_BPT = MAX_UINT112.div(2);
 
 export default class StablePool extends BasePool {
   amplificationParameter: BigNumberish;
   bptIndex: number;
+  relayer: Contract;
+  assetManagers: string[];
 
   static async create(params: RawStablePoolDeployment = {}): Promise<StablePool> {
     return StablePoolDeployer.deploy(params);
@@ -61,12 +64,16 @@ export default class StablePool extends BasePool {
     bptIndex: BigNumber,
     swapFeePercentage: BigNumberish,
     amplificationParameter: BigNumberish,
+    relayer: Contract,
+    assetManagers: string[],
     owner?: SignerWithAddress
   ) {
     super(instance, poolId, vault, tokens, swapFeePercentage, owner);
 
     this.amplificationParameter = amplificationParameter;
     this.bptIndex = bptIndex.toNumber();
+    this.relayer = relayer;
+    this.assetManagers = assetManagers;
   }
 
   get bpt(): Token {
@@ -323,6 +330,32 @@ export default class StablePool extends BasePool {
     return { amountsIn: deltas, dueProtocolFeeAmounts: protocolFeeAmounts };
   }
 
+  async initRelayer(initParams: InitStablePool): Promise<ContractTransaction> {
+    const from = initParams.from || (await ethers.getSigners())[0];
+    const initialBalances = initParams.initialBalances;
+    const balances = await this._dropBptItem(Array.isArray(initialBalances) ? initialBalances : [initialBalances]);
+
+    await Promise.all(
+      balances.map(async (balance, i) => {
+        const token = this.tokens.get(i);
+
+        await token.mint(from, balance);
+        await token.approve(this.vault, balance, { from });
+      })
+    );
+    const { tokens: allTokens } = await this.getTokens();
+    const params: JoinExitStablePool = this._buildInitParams(initParams);
+    const to = params.recipient ? TypesConverter.toAddress(params.recipient) : params.from?.address ?? ZERO_ADDRESS;
+    const relayer = params.from ? this.relayer.connect(params.from) : this.relayer;
+
+    return relayer.joinPool(this.poolId, to, {
+      assets: allTokens,
+      maxAmountsIn: Array(allTokens.length).fill(MAX_UINT256),
+      fromInternalBalance: false,
+      userData: params.data ?? '0x',
+    });
+  }
+
   toList<T>(items: NAry<T>): T[] {
     return Array.isArray(items) ? items : [items];
   }
@@ -334,6 +367,10 @@ export default class StablePool extends BasePool {
     params.amountsIn = await this._dropBptItem(tokenAmountsIn);
 
     return this.join(this._buildJoinGivenInParams(params));
+  }
+
+  async joinGivenInRelayer(params: JoinGivenInStablePool): Promise<ContractTransaction> {
+    return this.joinRelayer(this._buildJoinGivenInParams(params));
   }
 
   async queryJoinGivenIn(params: JoinGivenInStablePool): Promise<JoinQueryResult> {
@@ -375,6 +412,36 @@ export default class StablePool extends BasePool {
     return { amountsIn: deltas, dueProtocolFeeAmounts: protocolFees };
   }
 
+  async joinRelayer(params: JoinExitStablePool): Promise<ContractTransaction> {
+    const to = params.recipient ? TypesConverter.toAddress(params.recipient) : params.from?.address ?? ZERO_ADDRESS;
+    const relayer = params.from ? this.relayer.connect(params.from) : this.relayer;
+    const { tokens: allTokens } = await this.getTokens();
+    return relayer.joinPool(this.poolId, to, {
+      assets: allTokens,
+      maxAmountsIn: Array(allTokens.length).fill(MAX_UINT256),
+      fromInternalBalance: false,
+      userData: params.data ?? '0x',
+    });
+  }
+
+  async exitRelayer(params: JoinExitWeightedPool): Promise<ContractTransaction> {
+    const currentBalances = params.currentBalances || (await this.getBalances());
+    const to = params.recipient ? TypesConverter.toAddress(params.recipient) : params.from?.address ?? ZERO_ADDRESS;
+    const relayer = params.from ? this.relayer.connect(params.from) : this.relayer;
+    const { tokens: allTokens } = await this.getTokens();
+    return relayer.exitPool(
+      this.poolId,
+      to,
+      {
+        assets: allTokens,
+        minAmountsOut: Array(allTokens.length).fill(0),
+        toInternalBalance: false,
+        userData: params.data ?? '0x',
+      },
+      currentBalances
+    );
+  }
+
   async queryJoin(params: JoinExitStablePool): Promise<JoinQueryResult> {
     const fn = this.instance.queryJoin;
     return (await this._executeQuery(params, fn)) as JoinQueryResult;
@@ -398,6 +465,10 @@ export default class StablePool extends BasePool {
 
   async singleExitGivenIn(params: SingleExitGivenInStablePool): Promise<ExitResult> {
     return this.exit(this._buildSingleExitGivenInParams(params));
+  }
+
+  async singleExitGivenInRelayer(params: SingleExitGivenInStablePool): Promise<ContractTransaction> {
+    return this.exitRelayer(this._buildSingleExitGivenInParams(params));
   }
 
   async querySingleExitGivenIn(params: SingleExitGivenInStablePool): Promise<ExitQueryResult> {
@@ -556,5 +627,9 @@ export default class StablePool extends BasePool {
     const result = [];
     for (let i = 0; i < items.length - 1; i++) result[i] = items[i < this.bptIndex ? i : i + 1];
     return result;
+  }
+
+  async getRelayer(): Promise<ContractTransaction> {
+    return this.instance.getRelayer();
   }
 }
