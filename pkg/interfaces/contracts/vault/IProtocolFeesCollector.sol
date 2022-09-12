@@ -46,6 +46,4 @@ interface IProtocolFeesCollector {
     function getAuthorizer() external view returns (IAuthorizer);
 
     function vault() external view returns (IVault);
-
-    function registerFee(address poolAddress, IERC20 token) external;
 }
