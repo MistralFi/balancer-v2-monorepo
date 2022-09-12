@@ -19,6 +19,7 @@ import { encodeInvestmentConfig } from './helpers/rebalance';
 describe('RebalancingRelayer', function () {
   let poolId: string, tokens: TokenList;
   let sender: SignerWithAddress, recipient: SignerWithAddress, admin: SignerWithAddress;
+  let weth: Token;
   let vault: Contract,
     authorizer: Contract,
     relayer: Contract,
@@ -31,17 +32,15 @@ describe('RebalancingRelayer', function () {
 
   before('setup signer', async () => {
     [, admin, sender, recipient] = await ethers.getSigners();
+    weth = await Token.create('WETH');
+    tokens = await TokenList.create(['DAI', 'MKR'], { sorted: true });
   });
 
   sharedBeforeEach('deploy relayer', async () => {
-    const DAI = await Token.create('DAI');
-    const WETH = await Token.create('WETH');
-    tokens = new TokenList([DAI, WETH].sort());
-
     feeForwarder = await deploy('v2-vault/MockForwarder', { args: [] });
     authorizer = await deploy('v2-vault/TimelockAuthorizer', { args: [admin.address, ZERO_ADDRESS, MONTH] });
     vault = await deploy('v2-vault/Vault', {
-      args: [authorizer.address, tokens.WETH.address, 0, 0, feeForwarder.address],
+      args: [authorizer.address, weth.address, 0, 0, feeForwarder.address],
     });
     relayer = await deploy('Relayer', { args: [vault.address] });
 
@@ -159,12 +158,12 @@ describe('RebalancingRelayer', function () {
           });
 
           it('returns any extra value to the sender', async () => {
-            const previousVaultBalance = await tokens.WETH.balanceOf(vault.address);
+            const previousVaultBalance = await weth.balanceOf(vault.address);
             const previousSenderBalance = await ethers.provider.getBalance(sender.address);
             const previousRelayerBalance = await ethers.provider.getBalance(relayer.address);
 
             // Overwrite assets addresses to use ETH instead of WETH
-            request.assets = tokens.map((token) => (token === tokens.WETH ? ZERO_ADDRESS : token.address));
+            request.assets = tokens.map((token) => (token === weth ? ZERO_ADDRESS : token.address));
             const gasPrice = await ethers.provider.getGasPrice();
             const receipt = await relayer
               .connect(sender)
@@ -174,7 +173,7 @@ describe('RebalancingRelayer', function () {
             const currentSenderBalance = await ethers.provider.getBalance(sender.address);
             const expectedTransferredBalance = previousSenderBalance.sub(currentSenderBalance).sub(ethUsed);
 
-            const currentVaultBalance = await tokens.WETH.balanceOf(vault.address);
+            const currentVaultBalance = await weth.balanceOf(vault.address);
             expect(currentVaultBalance).to.be.equal(previousVaultBalance.add(expectedTransferredBalance));
 
             const currentRelayerBalance = await ethers.provider.getBalance(relayer.address);
