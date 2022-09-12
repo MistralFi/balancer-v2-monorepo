@@ -42,7 +42,6 @@ import {
 } from './math';
 import BasePool from '../base/BasePool';
 import { currentTimestamp, DAY } from '../../../time';
-import { InitWeightedPool, JoinExitWeightedPool, JoinGivenInWeightedPool } from '../weighted/types';
 
 const PREMINTED_BPT = MAX_UINT112.div(2);
 
@@ -424,7 +423,7 @@ export default class StablePool extends BasePool {
     });
   }
 
-  async exitRelayer(params: JoinExitWeightedPool): Promise<ContractTransaction> {
+  async exitRelayer(params: JoinExitStablePool): Promise<ContractTransaction> {
     const currentBalances = params.currentBalances || (await this.getBalances());
     const to = params.recipient ? TypesConverter.toAddress(params.recipient) : params.from?.address ?? ZERO_ADDRESS;
     const relayer = params.from ? this.relayer.connect(params.from) : this.relayer;

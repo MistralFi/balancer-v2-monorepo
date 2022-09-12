@@ -19,8 +19,9 @@ import "@balancer-labs/v2-pool-utils/contracts/RelayedBasePool.sol";
 import "./ComposableStablePool.sol";
 
 /// @title RelayedComposableStablePool
-/// @dev RelayedComposableStablePool is a extension of standard Balancer's ComposableStable pool with restricted joinPool and exitPool
-///      Those methods should be called by the Relayer only to allow usage of Asset managers (rebalancing logic)
+/// @dev RelayedComposableStablePool is a extension of standard Balancer's ComposableStable pool with restricted
+///      joinPool and exitPool. Those methods should be called by the Relayer only to allow usage of Asset managers
+///      (rebalancing logic)
 contract RelayedComposableStablePool is ComposableStablePool, RelayedBasePool {
     constructor(ComposableStablePool.NewPoolParams memory params, IBasePoolRelayer relayer)
         ComposableStablePool(params)
