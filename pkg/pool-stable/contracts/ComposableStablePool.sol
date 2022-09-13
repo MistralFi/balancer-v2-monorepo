@@ -79,6 +79,7 @@ contract ComposableStablePool is
         uint256 pauseWindowDuration;
         uint256 bufferPeriodDuration;
         address owner;
+        address[] assetManagers;
     }
 
     constructor(NewPoolParams memory params)
@@ -88,7 +89,7 @@ contract ComposableStablePool is
             params.name,
             params.symbol,
             _insertSorted(params.tokens, IERC20(this)),
-            new address[](params.tokens.length + 1),
+            params.assetManagers,
             params.swapFeePercentage,
             params.pauseWindowDuration,
             params.bufferPeriodDuration,
@@ -147,7 +148,7 @@ contract ComposableStablePool is
      * @dev Override base pool hook invoked before any swap, join, or exit to ensure rates are updated before
      * the operation.
      */
-    function _beforeSwapJoinExit() internal override {
+    function _beforeSwapJoinExit() internal virtual override {
         super._beforeSwapJoinExit();
 
         // Before the scaling factors are read, we must update the cached rates, as those will be used to compute the

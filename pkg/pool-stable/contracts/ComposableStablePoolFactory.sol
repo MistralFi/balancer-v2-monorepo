@@ -61,7 +61,8 @@ contract ComposableStablePoolFactory is BasePoolFactory, FactoryWidePauseWindow 
                             swapFeePercentage: swapFeePercentage,
                             pauseWindowDuration: pauseWindowDuration,
                             bufferPeriodDuration: bufferPeriodDuration,
-                            owner: owner
+                            owner: owner,
+                            assetManagers: new address[](tokens.length + 1) // Don't allow asset managers,
                         })
                     )
                 )
