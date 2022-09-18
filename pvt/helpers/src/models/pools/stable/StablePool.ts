@@ -631,4 +631,8 @@ export default class StablePool extends BasePool {
   async getRelayer(): Promise<ContractTransaction> {
     return this.instance.getRelayer();
   }
+
+  async setAssetManagerPoolConfig(token: Token, config: string): Promise<ContractTransaction> {
+    return this.instance.setAssetManagerPoolConfig(token.address, config);
+  }
 }

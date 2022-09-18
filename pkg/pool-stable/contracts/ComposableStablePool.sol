@@ -89,7 +89,8 @@ contract ComposableStablePool is
             params.name,
             params.symbol,
             _insertSorted(params.tokens, IERC20(this)),
-            params.assetManagers,
+            // we need to add address(0) for BPT inserted
+            _alignAM(_insertSorted(params.tokens, IERC20(this)), params.assetManagers, IERC20(this)),
             params.swapFeePercentage,
             params.pauseWindowDuration,
             params.bufferPeriodDuration,

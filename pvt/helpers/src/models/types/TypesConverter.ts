@@ -162,6 +162,7 @@ export default {
       bufferPeriodDuration,
       owner: params.owner,
       assetManagers: assetManagers,
+      delegateOwner: params.delegateOwner,
       poolType,
     };
   },
