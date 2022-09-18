@@ -239,7 +239,7 @@ abstract contract AssetManagerBase is IAssetManagerBase {
         ops[1] = IVault.PoolBalanceOp(IVault.PoolBalanceOpKind.WITHDRAW, poolId, underlying, amount);
         balancerVault.managePoolBalance(ops);
 
-        _invest(amount, aum);
+        _invest(amount);
     }
 
     /**
@@ -248,7 +248,7 @@ abstract contract AssetManagerBase is IAssetManagerBase {
      */
     function _capitalOut(uint256 amount) private {
         uint256 aum = _getAUM();
-        uint256 tokensOut = _divest(amount, aum);
+        uint256 tokensOut = _divest(amount);
         IVault.PoolBalanceOp[] memory ops = new IVault.PoolBalanceOp[](2);
         // Update the vault with new managed balance accounting for returns
         ops[0] = IVault.PoolBalanceOp(IVault.PoolBalanceOpKind.UPDATE, poolId, underlying, aum);
@@ -261,17 +261,16 @@ abstract contract AssetManagerBase is IAssetManagerBase {
     /**
      * @dev Invests capital inside the asset manager
      * @param amount - the amount of tokens being deposited
-     * @param aum - the assets under management
      * @return the number of tokens that were deposited
      */
-    function _invest(uint256 amount, uint256 aum) internal virtual returns (uint256);
+    function _invest(uint256 amount) internal virtual returns (uint256);
 
     /**
      * @dev Divests capital back to the asset manager
      * @param amount - the amount of tokens being withdrawn
      * @return the number of tokens to return to the vault
      */
-    function _divest(uint256 amount, uint256 aum) internal virtual returns (uint256);
+    function _divest(uint256 amount) internal virtual returns (uint256);
 
     /// @dev Claim all rewards and send to rewardCollector
     function claimRewards() external override {
@@ -318,8 +317,7 @@ abstract contract AssetManagerBase is IAssetManagerBase {
     }
 
     function _rebalance() internal {
-        uint256 aum = _getAUM();
-        (uint256 poolCash, uint256 poolManaged) = _getPoolBalances(aum);
+        (uint256 poolCash, uint256 poolManaged) = _getPoolBalances(_getAUM());
         InvestmentConfig memory config = _config;
 
         uint256 targetInvestment = ((poolCash + poolManaged) * config.targetPercentage) / _CONFIG_PRECISION;
@@ -330,7 +328,9 @@ abstract contract AssetManagerBase is IAssetManagerBase {
         } else {
             // Pool is over-invested so remove some funds
             uint256 rebalanceAmount = poolManaged - targetInvestment;
-            _capitalOut(rebalanceAmount);
+            if (rebalanceAmount != 0) {
+                _capitalOut(rebalanceAmount);
+            }
         }
 
         emit Rebalance(poolId);
