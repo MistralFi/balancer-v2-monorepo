@@ -53,6 +53,24 @@ function _insertSorted(IERC20[] memory tokens, IERC20 token) pure returns (IERC2
     sorted[i] = token;
 }
 
+function _alignAM(
+    IERC20[] memory sortedTokens,
+    address[] memory assetManagers,
+    IERC20 bpt
+) pure returns (address[] memory alignedAssetManagers) {
+    alignedAssetManagers = new address[](sortedTokens.length);
+    uint256 i;
+    bool inserted = false;
+    for (i = 0; i < sortedTokens.length; i++) {
+        if (sortedTokens[i] == bpt) {
+            alignedAssetManagers[i] = address(0);
+            inserted = true;
+        } else {
+            alignedAssetManagers[i] = inserted ? assetManagers[i - 1] : assetManagers[i];
+        }
+    }
+}
+
 function _appendToken(IERC20[] memory tokens, IERC20 newToken) pure returns (IERC20[] memory newTokens) {
     uint256 numTokens = tokens.length;
     newTokens = new IERC20[](numTokens + 1);

@@ -132,6 +132,7 @@ export type RawStablePoolDeployment = {
   fromFactory?: boolean;
   poolType?: StablePoolType;
   assetManagers?: string[];
+  delegateOwner?: string;
 };
 
 export type StablePoolDeployment = {
@@ -148,4 +149,5 @@ export type StablePoolDeployment = {
   admin?: SignerWithAddress;
   from?: SignerWithAddress;
   poolType?: StablePoolType;
+  delegateOwner?: string;
 };

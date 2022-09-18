@@ -37,7 +37,7 @@ export default {
     );
   },
 
-  async _deployStandalone(params: StablePoolDeployment, vault: Vault, relayer: Contract): Promise<Contract> {
+  _deployStandalone: async function (params: StablePoolDeployment, vault: Vault, relayer: Contract): Promise<Contract> {
     const {
       tokens,
       rateProviders,
@@ -50,12 +50,17 @@ export default {
       amplificationParameter,
       from,
       poolType,
+      delegateOwner,
     } = params;
 
     const owner = TypesConverter.toAddress(params.owner);
     let result: Promise<Contract>;
     switch (poolType) {
       case StablePoolType.RELAYED_STABLE_POOL: {
+        let own = owner;
+        if (delegateOwner) {
+          own = delegateOwner;
+        }
         result = deploy('v2-pool-stable/RelayedComposableStablePool', {
           args: [
             {
@@ -71,7 +76,7 @@ export default {
               swapFeePercentage,
               pauseWindowDuration,
               bufferPeriodDuration,
-              owner,
+              owner: own,
               assetManagers,
             },
             relayer.address,
