@@ -29,11 +29,11 @@ contract MockRewardsAssetManager is AssetManagerBase {
         poolId = _poolId;
     }
 
-    function _invest(uint256 amount, uint256) internal pure override returns (uint256) {
+    function _invest(uint256 amount) internal pure override returns (uint256) {
         return amount;
     }
 
-    function _divest(uint256 amount, uint256) internal pure override returns (uint256) {
+    function _divest(uint256 amount) internal pure override returns (uint256) {
         return amount;
     }
 
