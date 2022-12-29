@@ -14,15 +14,10 @@
 
 pragma solidity ^0.7.0;
 
-import "../helpers/BaseSplitCodeFactory.sol";
-import "./MockFactoryCreatedContract.sol";
+import "../helpers/BaseInitializableSplitCodeFactory.sol";
 
-contract MockSplitCodeFactory is BaseSplitCodeFactory {
+contract MockInitializableSplitCodeFactory is BaseInitializableSplitCodeFactory {
     event ContractCreated(address destination);
-
-    constructor() BaseSplitCodeFactory(type(MockFactoryCreatedContract).creationCode) {
-        // solhint-disable-previous-line no-empty-blocks
-    }
 
     function create(bytes32 id) external returns (address) {
         address destination = _create(abi.encode(id));

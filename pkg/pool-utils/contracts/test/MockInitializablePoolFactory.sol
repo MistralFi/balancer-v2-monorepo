@@ -13,21 +13,21 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pragma solidity ^0.7.0;
+pragma experimental ABIEncoderV2;
 
-import "../helpers/BaseSplitCodeFactory.sol";
-import "./MockFactoryCreatedContract.sol";
+import "@balancer-labs/v2-interfaces/contracts/vault/IVault.sol";
 
-contract MockSplitCodeFactory is BaseSplitCodeFactory {
-    event ContractCreated(address destination);
+import "../factories/BaseInitializablePoolFactory.sol";
+import "./MockFactoryCreatedPool.sol";
 
-    constructor() BaseSplitCodeFactory(type(MockFactoryCreatedContract).creationCode) {
+contract MockInitializablePoolFactory is BaseInitializablePoolFactory {
+    constructor(IVault _vault, IProtocolFeePercentagesProvider protocolFeeProvider)
+        BaseInitializablePoolFactory(_vault, protocolFeeProvider)
+    {
         // solhint-disable-previous-line no-empty-blocks
     }
 
-    function create(bytes32 id) external returns (address) {
-        address destination = _create(abi.encode(id));
-        emit ContractCreated(destination);
-
-        return destination;
+    function create() external returns (address) {
+        return _create("");
     }
 }
