@@ -14,12 +14,15 @@
 
 pragma solidity ^0.7.0;
 
-import "@balancer-labs/v2-interfaces/contracts/vault/IVault.sol";
+contract MockFactoryCreatedContract {
+    bytes32 private _id;
 
-import "../helpers/SingletonAuthentication.sol";
+    constructor(bytes32 id) {
+        require(id != 0, "NON_ZERO_ID");
+        _id = id;
+    }
 
-contract SingletonAuthenticationMock is SingletonAuthentication {
-    constructor(IVault vault) SingletonAuthentication(vault) {
-        // solhint-disable-previous-line no-empty-blocks
+    function getId() external view returns (bytes32) {
+        return _id;
     }
 }

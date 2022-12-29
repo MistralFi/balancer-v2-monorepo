@@ -14,12 +14,15 @@
 
 pragma solidity ^0.7.0;
 
-import "@balancer-labs/v2-interfaces/contracts/vault/IVault.sol";
+import "../helpers/BaseInitializableSplitCodeFactory.sol";
 
-import "../helpers/SingletonAuthentication.sol";
+contract MockInitializableSplitCodeFactory is BaseInitializableSplitCodeFactory {
+    event ContractCreated(address destination);
 
-contract SingletonAuthenticationMock is SingletonAuthentication {
-    constructor(IVault vault) SingletonAuthentication(vault) {
-        // solhint-disable-previous-line no-empty-blocks
+    function create(bytes32 id) external returns (address) {
+        address destination = _create(abi.encode(id));
+        emit ContractCreated(destination);
+
+        return destination;
     }
 }

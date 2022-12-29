@@ -15,19 +15,7 @@
 pragma solidity ^0.7.0;
 
 import "../helpers/BaseSplitCodeFactory.sol";
-
-contract MockFactoryCreatedContract {
-    bytes32 private _id;
-
-    constructor(bytes32 id) {
-        require(id != 0, "NON_ZERO_ID");
-        _id = id;
-    }
-
-    function getId() external view returns (bytes32) {
-        return _id;
-    }
-}
+import "./MockFactoryCreatedContract.sol";
 
 contract MockSplitCodeFactory is BaseSplitCodeFactory {
     event ContractCreated(address destination);

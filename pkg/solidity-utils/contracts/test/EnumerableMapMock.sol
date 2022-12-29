@@ -6,7 +6,6 @@ import "@balancer-labs/v2-interfaces/contracts/solidity-utils/openzeppelin/IERC2
 
 import "../openzeppelin/EnumerableMap.sol";
 
-
 // solhint-disable func-name-mixedcase
 
 contract EnumerableIERC20ToBytes32MapMock {

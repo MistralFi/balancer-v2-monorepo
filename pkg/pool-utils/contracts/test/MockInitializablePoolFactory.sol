@@ -13,13 +13,21 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 pragma solidity ^0.7.0;
+pragma experimental ABIEncoderV2;
 
 import "@balancer-labs/v2-interfaces/contracts/vault/IVault.sol";
 
-import "../helpers/SingletonAuthentication.sol";
+import "../factories/BaseInitializablePoolFactory.sol";
+import "./MockFactoryCreatedPool.sol";
 
-contract SingletonAuthenticationMock is SingletonAuthentication {
-    constructor(IVault vault) SingletonAuthentication(vault) {
+contract MockInitializablePoolFactory is BaseInitializablePoolFactory {
+    constructor(IVault _vault, IProtocolFeePercentagesProvider protocolFeeProvider)
+        BaseInitializablePoolFactory(_vault, protocolFeeProvider)
+    {
         // solhint-disable-previous-line no-empty-blocks
+    }
+
+    function create() external returns (address) {
+        return _create("");
     }
 }
