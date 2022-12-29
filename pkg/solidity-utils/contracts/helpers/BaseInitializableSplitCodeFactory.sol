@@ -44,7 +44,7 @@ abstract contract BaseInitializableSplitCodeFactory {
     /**
      * @dev The creation code of a contract Foo can be obtained inside Solidity with `type(Foo).creationCode`.
      */
-    function init(bytes memory creationCode) external{
+    function init(bytes memory creationCode) external {
         require(!_isInitialized, "Already initialized");
         uint256 creationCodeSize = creationCode.length;
 

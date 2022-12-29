@@ -20,6 +20,6 @@ import "../helpers/SingletonAuthentication.sol";
 
 contract SingletonAuthenticationMock is SingletonAuthentication {
     constructor(IVault vault) SingletonAuthentication(vault) {
-      // solhint-disable-previous-line no-empty-blocks
+        // solhint-disable-previous-line no-empty-blocks
     }
 }

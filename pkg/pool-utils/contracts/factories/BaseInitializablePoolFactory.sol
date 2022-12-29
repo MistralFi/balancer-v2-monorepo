@@ -35,7 +35,11 @@ import "@balancer-labs/v2-solidity-utils/contracts/helpers/SingletonAuthenticati
  * become increasingly important. Governance can deprecate a factory by calling `disable`, which will permanently
  * prevent the creation of any future pools from the factory.
  */
-abstract contract BaseInitializablePoolFactory is IBasePoolFactory, BaseInitializableSplitCodeFactory, SingletonAuthentication {
+abstract contract BaseInitializablePoolFactory is
+    IBasePoolFactory,
+    BaseInitializableSplitCodeFactory,
+    SingletonAuthentication
+{
     IProtocolFeePercentagesProvider private immutable _protocolFeeProvider;
 
     mapping(address => bool) private _isPoolFromFactory;
@@ -44,10 +48,7 @@ abstract contract BaseInitializablePoolFactory is IBasePoolFactory, BaseInitiali
     event PoolCreated(address indexed pool);
     event FactoryDisabled();
 
-    constructor(
-        IVault vault,
-        IProtocolFeePercentagesProvider protocolFeeProvider
-    ) SingletonAuthentication(vault) {
+    constructor(IVault vault, IProtocolFeePercentagesProvider protocolFeeProvider) SingletonAuthentication(vault) {
         _protocolFeeProvider = protocolFeeProvider;
     }
 
