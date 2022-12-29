@@ -25,7 +25,7 @@ describe('InitializableWeightedPoolFactory', function () {
   const POOL_SWAP_FEE_PERCENTAGE = fp(0.01);
   const WEIGHTS = toNormalizedWeights([fp(30), fp(70), fp(5), fp(5)]);
 
-  const BASE_PAUSE_WINDOW_DURATION = MONTH * 3;
+  const BASE_PAUSE_WINDOW_DURATION = MONTH * 3 - 1;
   const BASE_BUFFER_PERIOD_DURATION = MONTH;
 
   const WEIGHTED_POOL_CREATION_CODE =
