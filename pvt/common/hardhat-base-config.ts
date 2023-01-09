@@ -31,12 +31,16 @@ const contractSettings: ContractSettings = {
 
   '@balancer-labs/v2-pool-weighted/contracts/WeightedPool.sol': {
     version: '0.7.1',
-    runs: 50,
+    runs: 200,
   },
 
   '@balancer-labs/v2-pool-weighted/contracts/WeightedPoolFactory.sol': {
     version: '0.7.1',
-    runs: 50,
+    runs: 200,
+  },
+  '@balancer-labs/v2-pool-weighted/contracts/klaytn/WeightedPoolDataProvider.sol': {
+    version: '0.7.1',
+    runs: 200,
   },
 };
 
