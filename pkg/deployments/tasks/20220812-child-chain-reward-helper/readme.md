@@ -4,8 +4,4 @@ Deployment of the `ChildChainGaugeRewardHelper`, a helper contract that can be u
 
 ## Useful Files
 
-- [Polygon mainnet addresses](./output/polygon.json)
-- [Arbitrum mainnet addresses](./output/arbitrum.json)
-- [Optimism mainnet addresses](./output/optimism.json)
-- [Goerli testnet addresses](./output/goerli.json)
-- [`GaugeAdder` ABI](./abi/GaugeAdder.json)
+- [Klaytn baobab (testnet) address](./output/baobab.json)
